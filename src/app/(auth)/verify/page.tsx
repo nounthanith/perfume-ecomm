@@ -38,7 +38,7 @@ function VerifyForm() {
         sessionStorage.removeItem("pendingSignup");
         router.replace("/login?verified=1");
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => {
       cancelled = true;
@@ -146,7 +146,7 @@ function VerifyForm() {
             </div>
           )}
 
-          <Input
+          {/* <Input
             label="Email"
             name="email"
             type="email"
@@ -154,7 +154,7 @@ function VerifyForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-          />
+          /> */}
 
           <Input
             label="Verification Code"
