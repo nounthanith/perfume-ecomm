@@ -20,13 +20,10 @@ export default function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const urls = useMemo(() => {
-    return multiple
-      ? Array.isArray(value)
-        ? value
-        : []
-      : typeof value === "string"
-      ? [value]
-      : [];
+    if (multiple) {
+      return Array.isArray(value) ? value.filter((url) => url) : [];
+    }
+    return typeof value === "string" && value ? [value] : [];
   }, [value, multiple]);
 
   const handleUpload = useCallback(
