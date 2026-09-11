@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import Button from "@/components/ui/button";
 
 interface ProductCategory {
   _id: string;
@@ -90,7 +91,7 @@ export default function ProductManagement() {
             {products.length} product{products.length === 1 ? "" : "s"}
           </span>
           <Link href="/product-management/create" >
-            Create Product
+            <Button size="sm" variant="outline">Create Product</Button>
           </Link>
         </div>
       </div>

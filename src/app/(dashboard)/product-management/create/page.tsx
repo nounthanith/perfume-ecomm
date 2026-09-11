@@ -128,7 +128,7 @@ export default function CreateProductPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="max-w-2xl ">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Create Product</h1>
         <Link href="/product-management" className="text-sm text-gray-500 hover:underline">
