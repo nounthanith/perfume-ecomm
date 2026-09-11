@@ -13,7 +13,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     </a>
                 ))}
             </div>
-            {children}
+            <main className="px-2">
+                {children}
+            </main>
         </div>
     );
 }

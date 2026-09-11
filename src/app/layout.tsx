@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Perfume Store",
+  title: "G-Fragrance",
   description: "Premium perfume e-commerce store",
 };
 
@@ -24,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <link rel="icon" href="/logo.png" />
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>
