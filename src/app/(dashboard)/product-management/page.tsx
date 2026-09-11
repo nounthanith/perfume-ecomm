@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ProductCategory {
   _id: string;
@@ -84,9 +85,14 @@ export default function ProductManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Product Management</h1>
-        <span className="text-sm text-gray-500">
-          {products.length} product{products.length === 1 ? "" : "s"}
-        </span>
+        <div>
+          <span className="text-sm text-gray-500">
+            {products.length} product{products.length === 1 ? "" : "s"}
+          </span>
+          <Link href="/product-management/create" className="ml-4 rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600">
+            Create Product
+          </Link>
+        </div>
       </div>
 
       {error && (

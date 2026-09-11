@@ -6,7 +6,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (!session) redirect("/login");
     return (
         <div>
-            Dashboard Layout
+            <div>
+                {["dashboard", "product-management", "user-management"].map((item) => (
+                    <a className="hover:bg-foreground/20 px-2" key={item} href={`/${item}`}>
+                        {item}
+                    </a>
+                ))}
+            </div>
             {children}
         </div>
     );

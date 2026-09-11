@@ -67,7 +67,7 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="mb-8 text-center text-3xl font-bold">Our Perfumes</h1>
+      <h1 className="mb-8 text-start text-3xl font-bold">Our Perfumes</h1>
 
       {error && (
         <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
@@ -80,11 +80,11 @@ export default function Home() {
       ) : products.length === 0 ? (
         <p className="py-16 text-center text-gray-500">No products yet.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((product) => (
             <div
               key={product._id}
-              className="overflow-hidden rounded-xl border border-foreground/10"
+              className="overflow-hidden border border-foreground/10"
             >
               <div className="relative aspect-square w-full bg-foreground/5">
                 {product.images[0] ? (
