@@ -33,6 +33,14 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  await connectDB();
+  const products = await Product.find({}, "slug").lean();
+  return products.map((product) => ({ slug: String(product.slug) }));
+}
+
 const getProduct = cache(
   async (slug: string): Promise<ProductDetail | null> => {
     await connectDB();
