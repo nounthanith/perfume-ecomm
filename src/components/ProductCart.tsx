@@ -77,8 +77,8 @@ export default function ProductCart({
           <span className="text-lg font-semibold">
             ${product.price.toFixed(2)}
           </span>
-          <span className="text-sm text-gray-500">
-            {outOfStock ? "Out of stock" : `${product.stock} in stock`}
+          <span className="text-xs text-gray-500">
+            {outOfStock ? "Out of stock" : `in stock`}
           </span>
         </div>
 

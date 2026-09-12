@@ -183,7 +183,7 @@ export default async function ProductPage({ params }: Props) {
                 ${product.price.toFixed(2)}
               </span>
               <span
-                className={`text-sm ${outOfStock ? "text-red-500" : "text-gray-500"
+                className={`text-sm ${outOfStock ? "text-red-500" : "text-green-500"
                   }`}
               >
                 {outOfStock
@@ -204,13 +204,13 @@ export default async function ProductPage({ params }: Props) {
             </div>
           )}
 
-          <AddToCartButton
+          {/* <AddToCartButton
             productId={product._id}
             name={product.name}
             price={product.price}
             image={product.images?.[0]}
             stock={product.stock}
-          />
+          /> */}
 
           <div className="border-t border-foreground/10 pt-4 text-sm text-gray-500">
             <p>SKU: {product._id}</p>
