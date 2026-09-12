@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import { requireRole, forbidden } from "@/lib/guard";
-import { findAll } from "@/lib/crud";
+import { findAll, paginateAll } from "@/lib/crud";
 
 function toSlug(name: string) {
   return name
@@ -11,7 +11,22 @@ function toSlug(name: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl;
+  const page = searchParams.get("page");
+  const limit = searchParams.get("limit");
+
+  if (page) {
+    const result = await paginateAll(Category, {
+      page: parseInt(page, 10) || 1,
+      limit: parseInt(limit ?? "10", 10),
+    });
+    return NextResponse.json({
+      categories: result.items,
+      pagination: result.pagination,
+    });
+  }
+
   const categories = await findAll(Category);
   return NextResponse.json({ categories });
 }

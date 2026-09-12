@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/button";
+import Pagination from "@/components/ui/pagination";
+
+const PAGE_SIZE = 10;
 
 interface ProductCategory {
   _id: string;
@@ -23,8 +26,21 @@ interface Product {
   createdAt?: string;
 }
 
-async function fetchProducts(): Promise<Product[]> {
-  const response = await fetch("/api/products", {
+interface PaginationData {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+interface FetchResult {
+  products: Product[];
+  pagination: PaginationData;
+}
+
+async function fetchProducts(page: number): Promise<FetchResult> {
+  const response = await fetch(`/api/products?page=${page}&limit=${PAGE_SIZE}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -35,21 +51,27 @@ async function fetchProducts(): Promise<Product[]> {
     throw new Error("Failed to fetch products");
   }
 
-  const data = await response.json();
-  return data.products;
+  return response.json();
 }
 
 export default function ProductManagement() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
-    fetchProducts()
+    fetchProducts(page)
       .then((data) => {
-        if (!cancelled) setProducts(data);
+        if (!cancelled) {
+          setProducts(data.products);
+          setTotalPages(data.pagination.totalPages);
+          setTotalItems(data.pagination.totalItems);
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -65,14 +87,25 @@ export default function ProductManagement() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page]);
+
+  const changePage = (next: number) => {
+    if (next === page) return;
+    setLoading(true);
+    setError("");
+    setPage(next);
+  };
 
   const retry = () => {
     setLoading(true);
     setError("");
 
-    fetchProducts()
-      .then((data) => setProducts(data))
+    fetchProducts(page)
+      .then((data) => {
+        setProducts(data.products);
+        setTotalPages(data.pagination.totalPages);
+        setTotalItems(data.pagination.totalItems);
+      })
       .catch((err: unknown) =>
         setError(err instanceof Error ? err.message : "Error fetching products")
       )
@@ -88,7 +121,7 @@ export default function ProductManagement() {
         <h1 className=" font-bold">Product Management</h1>
         <div>
           <span className="text-sm text-gray-500">
-            {products.length} product{products.length === 1 ? "" : "s"}
+            {totalItems} product{totalItems === 1 ? "" : "s"}
           </span>
           <Link href="/product-management/create" >
             <Button size="sm" variant="outline">Create Product</Button>
@@ -118,46 +151,57 @@ export default function ProductManagement() {
           No products yet.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-foreground/10">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-foreground/10 bg-foreground/5">
-              <tr>
-                <th className="px-4 py-3 font-medium">Image</th>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Category</th>
-                <th className="px-4 py-3 font-medium">Price</th>
-                <th className="px-4 py-3 font-medium">Stock</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-foreground/10">
-              {products.map((product) => (
-                <tr key={product._id}>
-                  <td className="px-4 py-3">
-                    {product.images[0] ? (
-                      <Image
-                        src={product.images[0]}
-                        alt={product.name}
-                        width={48}
-                        height={48}
-                        className="h-12 w-12 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-foreground/5 text-xs text-gray-500">
-                        N/A
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-medium">{product.name}</td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {categoryName(product.category)}
-                  </td>
-                  <td className="px-4 py-3">${product.price.toFixed(2)}</td>
-                  <td className="px-4 py-3">{product.stock}</td>
+        <>
+          <div className="overflow-x-auto rounded-lg border border-foreground/10">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-foreground/10 bg-foreground/5">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Image</th>
+                  <th className="px-4 py-3 font-medium">Name</th>
+                  <th className="px-4 py-3 font-medium">Category</th>
+                  <th className="px-4 py-3 font-medium">Price</th>
+                  <th className="px-4 py-3 font-medium">Stock</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-foreground/10">
+                {products.map((product) => (
+                  <tr key={product._id}>
+                    <td className="px-4 py-3">
+                      {product.images[0] ? (
+                        <Image
+                          src={product.images[0]}
+                          alt={product.name}
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-foreground/5 text-xs text-gray-500">
+                          N/A
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium">{product.name}</td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {categoryName(product.category)}
+                    </td>
+                    <td className="px-4 py-3">${product.price.toFixed(2)}</td>
+                    <td className="px-4 py-3">{product.stock}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            limit={PAGE_SIZE}
+            onPageChange={changePage}
+            isLoading={loading}
+          />
+        </>
       )}
     </div>
   );

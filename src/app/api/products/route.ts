@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import "@/models/Category";
 import { requireRole, forbidden } from "@/lib/guard";
-import { create } from "@/lib/crud";
+import { create, paginateAll } from "@/lib/crud";
 
 function toSlug(name: string) {
   return name
@@ -12,9 +12,33 @@ function toSlug(name: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   await connectDB();
-  const products = await Product.find()
+
+  const { searchParams } = req.nextUrl;
+  const page = searchParams.get("page");
+  const limit = searchParams.get("limit");
+  const search = searchParams.get("search");
+
+  const filter: Record<string, unknown> = {};
+  if (search) {
+    filter.name = { $regex: search, $options: "i" };
+  }
+
+  if (page) {
+    const result = await paginateAll(Product, {
+      page: parseInt(page, 10) || 1,
+      limit: parseInt(limit ?? "10", 10),
+      filter,
+      populate: [{ path: "category", select: "name slug" }],
+    });
+    return NextResponse.json({
+      products: result.items,
+      pagination: result.pagination,
+    });
+  }
+
+  const products = await Product.find(filter)
     .populate("category", "name slug")
     .sort({ createdAt: -1 })
     .lean();
