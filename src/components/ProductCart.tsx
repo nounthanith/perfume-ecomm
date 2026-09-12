@@ -70,8 +70,7 @@ export default function ProductCart({
       <div className="space-y-3 p-4">
         <div className="space-y-1">
           <p className="text-xs text-gray-500">{categoryName}</p>
-          <h2 className="font-medium">{product.name}</h2>
-        </div>
+          <h2 className="font-medium text-sm sm:text-base md:text-lg lg:text-xl truncate">{product.name}</h2>        </div>
 
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold">
