@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Package, Plus, Pencil, Trash2, PackageX } from "lucide-react";
 import Button from "@/components/ui/button";
 import Dialog from "@/components/ui/dialog";
-import Pagination from "@/components/ui/pagination";
+import Table, { type TableColumn } from "@/components/ui/table";
+import { useFetch } from "@/hooks/useFetch";
 
 const PAGE_SIZE = 10;
 
@@ -40,88 +42,46 @@ interface FetchResult {
   pagination: PaginationData;
 }
 
-async function fetchProducts(page: number): Promise<FetchResult> {
-  const response = await fetch(`/api/products?page=${page}&limit=${PAGE_SIZE}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch products");
+function stockBadge(stock: number) {
+  if (stock <= 0) {
+    return {
+      label: "Out of stock",
+      className: "bg-red-500/10 text-red-600",
+    };
   }
-
-  return response.json();
+  if (stock <= 5) {
+    return {
+      label: `Low · ${stock}`,
+      className: "bg-amber-500/10 text-amber-600",
+    };
+  }
+  return {
+    label: `${stock} in stock`,
+    className: "bg-emerald-500/10 text-emerald-600",
+  };
 }
 
 export default function ProductManagement() {
-  const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  const { data, loading, error, refetch } = useFetch<FetchResult>(
+    "/api/products",
+    {
+      params: { page, limit: PAGE_SIZE },
+    }
+  );
+
+  const products = data?.products ?? [];
+  const totalPages = data?.pagination.totalPages ?? 1;
+  const totalItems = data?.pagination.totalItems ?? 0;
 
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    fetchProducts(page)
-      .then((data) => {
-        if (!cancelled) {
-          setProducts(data.products);
-          setTotalPages(data.pagination.totalPages);
-          setTotalItems(data.pagination.totalItems);
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : "Error fetching products"
-          );
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [page]);
-
   const changePage = (next: number) => {
     if (next === page) return;
-    setLoading(true);
-    setError("");
     setPage(next);
-  };
-
-  const retry = () => {
-    setLoading(true);
-    setError("");
-
-    fetchProducts(page)
-      .then((data) => {
-        setProducts(data.products);
-        setTotalPages(data.pagination.totalPages);
-        setTotalItems(data.pagination.totalItems);
-      })
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : "Error fetching products")
-      )
-      .finally(() => setLoading(false));
-  };
-
-  const refresh = async () => {
-    const data = await fetchProducts(page);
-    setProducts(data.products);
-    setTotalPages(data.pagination.totalPages);
-    setTotalItems(data.pagination.totalItems);
   };
 
   const confirmDelete = (product: Product) => {
@@ -140,15 +100,15 @@ export default function ProductManagement() {
         headers: { "Content-Type": "application/json" },
       });
 
-      const data = await res.json();
+      const responseData = await res.json();
 
       if (!res.ok) {
-        setDeleteError(data.error || "Failed to delete product");
+        setDeleteError(responseData.error || "Failed to delete product");
         return;
       }
 
       setDeleteTarget(null);
-      await refresh();
+      await refetch();
     } catch {
       setDeleteError("Something went wrong. Please try again.");
     } finally {
@@ -156,117 +116,156 @@ export default function ProductManagement() {
     }
   };
 
-  const categoryName = (category: Product["category"]) =>
-    typeof category === "object" ? category.name : "—";
+  const columns: TableColumn<Product>[] = [
+    {
+      key: "product",
+      header: "Product",
+      render: (product) => (
+        <div className="flex items-center gap-3">
+          {product.images[0] ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              width={44}
+              height={44}
+              className="h-11 w-11 shrink-0 rounded-lg border border-foreground/10 object-cover"
+            />
+          ) : (
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5 text-[10px] font-medium uppercase text-foreground/40">
+              N/A
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="max-w-[220px] truncate font-medium text-foreground">
+              {product.name}
+            </p>
+            <p className="max-w-[220px] truncate text-xs text-foreground/50">
+              {product.slug}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      headerClassName: "hidden md:table-cell",
+      className: "hidden md:table-cell",
+      render: (product) => {
+        const name =
+          typeof product.category === "object" ? product.category.name : "—";
+        return (
+          <span className="inline-flex max-w-[160px] truncate rounded-full border border-foreground/10 bg-foreground/5 px-2.5 py-1 text-xs font-medium text-foreground/70">
+            {name}
+          </span>
+        );
+      },
+    },
+    {
+      key: "price",
+      header: "Price",
+      render: (product) => (
+        <span className="font-semibold text-foreground">
+          ${product.price.toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      key: "stock",
+      header: "Stock",
+      render: (product) => (
+        <span
+          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+            stockBadge(product.stock).className
+          }`}
+        >
+          {stockBadge(product.stock).label}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      render: (product) => (
+        <div className="flex items-center justify-end gap-1">
+          <Link
+            href={`/product-management/edit/${product._id}`}
+            title={`Edit ${product.name}`}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => confirmDelete(product)}
+            title={`Delete ${product.name}`}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-foreground/60 transition-colors hover:bg-red-500/10 hover:text-red-600"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className=" font-bold">Product Management</h1>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">
-            {totalItems} product{totalItems === 1 ? "" : "s"}
-          </span>
-          <Link href="/product-management/create">
-            <Button size="sm" variant="outline">
-              Create Product
-            </Button>
-          </Link>
+      {/* Page header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
+            <Package className="h-5 w-5 text-foreground/80" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+              Products
+            </h1>
+            <p className="text-sm text-foreground/60">
+              Manage your store catalog
+            </p>
+          </div>
         </div>
+        <Link href="/product-management/create">
+          <Button size="md" className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Create Product
+          </Button>
+        </Link>
       </div>
 
-      {error && (
-        <div className="flex items-center justify-between rounded-lg bg-red-50 p-4 text-sm text-red-600">
-          <span>{error}</span>
-          <button
-            type="button"
-            onClick={retry}
-            className="font-medium underline hover:opacity-70"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <p className="text-gray-500">Loading products...</p>
-        </div>
-      ) : products.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-foreground/20 py-16 text-center text-gray-500">
-          No products yet.
-        </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto rounded-lg border border-foreground/10">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-foreground/10 bg-foreground/5">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Image</th>
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Category</th>
-                  <th className="px-4 py-3 font-medium">Price</th>
-                  <th className="px-4 py-3 font-medium">Stock</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-foreground/10">
-                {products.map((product) => (
-                  <tr key={product._id}>
-                    <td className="px-4 py-3">
-                      {product.images[0] ? (
-                        <Image
-                          src={product.images[0]}
-                          alt={product.name}
-                          width={48}
-                          height={48}
-                          className="h-12 w-12 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-foreground/5 text-xs text-gray-500">
-                          N/A
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 font-medium">{product.name}</td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {categoryName(product.category)}
-                    </td>
-                    <td className="px-4 py-3">${product.price.toFixed(2)}</td>
-                    <td className="px-4 py-3">{product.stock}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Link href={`/product-management/edit/${product._id}`}>
-                          <Button size="sm" variant="outline">
-                            Edit
-                          </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => confirmDelete(product)}
-                          className="border-red-500/40 text-red-500 hover:bg-red-50"
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            limit={PAGE_SIZE}
-            onPageChange={changePage}
-            isLoading={loading}
-          />
-        </>
-      )}
+      <Table
+        columns={columns}
+        data={products}
+        getRowKey={(product) => product._id}
+        title="All Products"
+        count={totalItems}
+        loading={loading}
+        skeletonRows={6}
+        error={error}
+        onRetry={() => refetch()}
+        empty={{
+          icon: <PackageX className="h-6 w-6 text-foreground/40" />,
+          title: "No products yet",
+          message: "Create your first product to get started.",
+          action: (
+            <Link href="/product-management/create">
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                Create Product
+              </Button>
+            </Link>
+          ),
+        }}
+        pagination={{
+          page,
+          totalPages,
+          totalItems,
+          limit: PAGE_SIZE,
+          onPageChange: changePage,
+          isLoading: loading,
+        }}
+      />
 
       <Dialog
         open={!!deleteTarget}
@@ -284,7 +283,7 @@ export default function ProductManagement() {
         </p>
 
         {deleteError && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+          <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-600">
             {deleteError}
           </div>
         )}
@@ -301,12 +300,13 @@ export default function ProductManagement() {
           </Button>
           <Button
             size="sm"
-            variant="primary"
+            variant="danger"
             type="button"
             loading={deleting}
             onClick={handleDelete}
-            className="bg-red-500 text-white hover:bg-red-600"
+            className="gap-1.5"
           >
+            <Trash2 className="h-3.5 w-3.5" />
             {deleting ? "Deleting..." : "Delete"}
           </Button>
         </div>

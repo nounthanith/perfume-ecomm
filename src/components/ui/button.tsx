@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-type ButtonVariant = "primary" | "outline" | "ghost";
+type ButtonVariant = "primary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends React.ComponentProps<"button"> {
@@ -13,6 +13,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary: "bg-foreground text-background hover:opacity-90",
   outline: "border border-foreground text-foreground bg-transparent hover:bg-foreground/10",
   ghost: "text-foreground bg-transparent hover:bg-foreground/10",
+  danger: "bg-red-600 text-white hover:bg-red-500",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

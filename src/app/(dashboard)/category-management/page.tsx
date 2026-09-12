@@ -1,193 +1,155 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { FolderTree, Plus, Tags } from "lucide-react";
 import Button from "@/components/ui/button";
-import Pagination from "@/components/ui/pagination";
+import Table, { type TableColumn } from "@/components/ui/table";
+import { useFetch } from "@/hooks/useFetch";
 
 const PAGE_SIZE = 10;
 
 interface Category {
-    _id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    image?: string;
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
 }
 
 interface PaginationData {
-    page: number;
-    totalPages: number;
-    totalItems: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 interface FetchResult {
-    categories: Category[];
-    pagination: PaginationData;
-}
-
-async function fetchCategories(page: number): Promise<FetchResult> {
-    const response = await fetch(`/api/categories?page=${page}&limit=${PAGE_SIZE}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch categories");
-    }
-
-    return response.json();
+  categories: Category[];
+  pagination: PaginationData;
 }
 
 export default function CategoryManagement() {
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
 
-    useEffect(() => {
-        let cancelled = false;
+  const { data, loading, error, refetch } = useFetch<FetchResult>(
+    "/api/categories",
+    {
+      params: { page, limit: PAGE_SIZE },
+    }
+  );
 
-        fetchCategories(page)
-            .then((data) => {
-                if (!cancelled) {
-                    setCategories(data.categories);
-                    setTotalPages(data.pagination.totalPages);
-                    setTotalItems(data.pagination.totalItems);
-                }
-            })
-            .catch((err: unknown) => {
-                if (!cancelled) {
-                    setError(
-                        err instanceof Error ? err.message : "Error fetching categories"
-                    );
-                }
-            })
-            .finally(() => {
-                if (!cancelled) setLoading(false);
-            });
+  const categories = data?.categories ?? [];
+  const totalPages = data?.pagination.totalPages ?? 1;
+  const totalItems = data?.pagination.totalItems ?? 0;
 
-        return () => {
-            cancelled = true;
-        };
-    }, [page]);
+  const changePage = (next: number) => {
+    if (next === page) return;
+    setPage(next);
+  };
 
-    const changePage = (next: number) => {
-        if (next === page) return;
-        setLoading(true);
-        setError("");
-        setPage(next);
-    };
-
-    const retry = () => {
-        setLoading(true);
-        setError("");
-
-        fetchCategories(page)
-            .then((data) => {
-                setCategories(data.categories);
-                setTotalPages(data.pagination.totalPages);
-                setTotalItems(data.pagination.totalItems);
-            })
-            .catch((err: unknown) =>
-                setError(err instanceof Error ? err.message : "Error fetching categories")
-            )
-            .finally(() => setLoading(false));
-    };
-
-    return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold">Category Management</h1>
-                <div>
-                    <span className="text-sm text-gray-500">
-                        {totalItems} categor{totalItems === 1 ? "y" : "ies"}
-                    </span>
-                    <Link
-                        href="/category-management/create"
-                    >
-                        <Button size="sm" variant="outline">Create Category</Button>
-                    </Link>
-                </div>
+  const columns: TableColumn<Category>[] = [
+    {
+      key: "category",
+      header: "Category",
+      render: (category) => (
+        <div className="flex items-center gap-3">
+          {category.image ? (
+            <Image
+              src={category.image}
+              alt={category.name}
+              width={44}
+              height={44}
+              className="h-11 w-11 shrink-0 rounded-lg border border-foreground/10 object-cover"
+            />
+          ) : (
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
+              <FolderTree className="h-5 w-5 text-foreground/40" />
             </div>
-
-            {error && (
-                <div className="flex items-center justify-between rounded-lg bg-red-50 p-4 text-sm text-red-600">
-                    <span>{error}</span>
-                    <button
-                        type="button"
-                        onClick={retry}
-                        className="font-medium underline hover:opacity-70"
-                    >
-                        Retry
-                    </button>
-                </div>
-            )}
-
-            {loading ? (
-                <div className="flex items-center justify-center py-16">
-                    <p className="text-gray-500">Loading categories...</p>
-                </div>
-            ) : categories.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-foreground/20 py-16 text-center text-gray-500">
-                    No categories yet.
-                </div>
-            ) : (
-                <>
-                    <div className="overflow-x-auto rounded-lg border border-foreground/10">
-                        <table className="w-full text-left text-sm">
-                            <thead className="border-b border-foreground/10 bg-foreground/5">
-                                <tr>
-                                    <th className="px-4 py-3 font-medium">Image</th>
-                                    <th className="px-4 py-3 font-medium">Name</th>
-                                    <th className="px-4 py-3 font-medium">Slug</th>
-                                    <th className="px-4 py-3 font-medium">Description</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-foreground/10">
-                                {categories.map((category) => (
-                                    <tr key={category._id}>
-                                        <td className="px-4 py-3">
-                                            {category.image ? (
-                                                <Image
-                                                    src={category.image}
-                                                    alt={category.name}
-                                                    width={48}
-                                                    height={48}
-                                                    className="h-12 w-12 rounded-lg object-cover"
-                                                />
-                                            ) : (
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-foreground/5 text-xs text-gray-500">
-                                                    N/A
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 font-medium">{category.name}</td>
-                                        <td className="px-4 py-3 text-gray-600">{category.slug}</td>
-                                        <td className="max-w-sm px-4 py-3 text-gray-600">
-                                            {category.description || "—"}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <Pagination
-                        page={page}
-                        totalPages={totalPages}
-                        totalItems={totalItems}
-                        limit={PAGE_SIZE}
-                        onPageChange={changePage}
-                        isLoading={loading}
-                    />
-                </>
-            )}
+          )}
+          <div className="min-w-0">
+            <p className="truncate font-medium text-foreground">
+              {category.name}
+            </p>
+            <p className="truncate text-xs text-foreground/50">
+              /{category.slug}
+            </p>
+          </div>
         </div>
-    );
+      ),
+    },
+    {
+      key: "description",
+      header: "Description",
+      headerClassName: "hidden md:table-cell",
+      className: "hidden max-w-md md:table-cell",
+      render: (category) => (
+        <p className="line-clamp-2 text-foreground/60">
+          {category.description || "—"}
+        </p>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Page header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
+            <FolderTree className="h-5 w-5 text-foreground/80" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+              Categories
+            </h1>
+            <p className="text-sm text-foreground/60">
+              Organize your catalog by fragrance families
+            </p>
+          </div>
+        </div>
+        <Link href="/category-management/create">
+          <Button size="md" className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Create Category
+          </Button>
+        </Link>
+      </div>
+
+      <Table
+        columns={columns}
+        data={categories}
+        getRowKey={(category) => category._id}
+        title="All Categories"
+        count={totalItems}
+        loading={loading}
+        skeletonRows={5}
+        error={error}
+        onRetry={() => refetch()}
+        empty={{
+          icon: <Tags className="h-6 w-6 text-foreground/40" />,
+          title: "No categories yet",
+          message: "Create your first category to get started.",
+          action: (
+            <Link href="/category-management/create">
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                Create Category
+              </Button>
+            </Link>
+          ),
+        }}
+        pagination={{
+          page,
+          totalPages,
+          totalItems,
+          limit: PAGE_SIZE,
+          onPageChange: changePage,
+          isLoading: loading,
+        }}
+      />
+    </div>
+  );
 }
