@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ProductCart, { type ProductCardData } from "@/components/ProductCart";
 import Pagination from "@/components/ui/pagination";
 import Skeleton from "@/components/ui/skeleton";
+import { useFetch } from "@/hooks/useFetch";
 
 const PAGE_SIZE = 8;
 
@@ -18,21 +19,6 @@ interface PaginationData {
 interface FetchResult {
   products: ProductCardData[];
   pagination: PaginationData;
-}
-
-async function fetchProducts(page: number): Promise<FetchResult> {
-  const response = await fetch(`/api/products?page=${page}&limit=${PAGE_SIZE}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch products");
-  }
-
-  return response.json();
 }
 
 function ProductCardSkeleton() {
@@ -64,46 +50,15 @@ function ProductGridSkeleton() {
 }
 
 export default function Home() {
-  const [products, setProducts] = useState<ProductCardData[]>([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
+  const { data, loading, error } = useFetch<FetchResult>("/api/products", {
+    params: { page, limit: PAGE_SIZE },
+  });
 
-    fetchProducts(page)
-      .then((data) => {
-        if (!cancelled) {
-          setProducts(data.products);
-          setTotalPages(data.pagination.totalPages);
-          setTotalItems(data.pagination.totalItems);
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : "Failed to load products"
-          );
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [page]);
-
-  const changePage = (next: number) => {
-    if (next === page) return;
-    setLoading(true);
-    setError("");
-    setPage(next);
-  };
+  const products = data?.products ?? [];
+  const totalPages = data?.pagination.totalPages ?? 1;
+  const totalItems = data?.pagination.totalItems ?? 0;
 
   return (
     <div className="mx-auto max-w-full px-4 py-10">
@@ -133,7 +88,7 @@ export default function Home() {
               totalPages={totalPages}
               totalItems={totalItems}
               limit={PAGE_SIZE}
-              onPageChange={changePage}
+              onPageChange={setPage}
               isLoading={loading}
             />
           </div>
