@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProductCart, { type ProductCardData } from "@/components/ProductCart";
 import Pagination from "@/components/ui/pagination";
 import Skeleton from "@/components/ui/skeleton";
@@ -49,8 +50,12 @@ function ProductGridSkeleton() {
   );
 }
 
-export default function Home() {
-  const [page, setPage] = useState(1);
+function HomeContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const rawPage = Number(searchParams.get("page") ?? "1");
+  const page = Number.isInteger(rawPage) && rawPage >= 1 ? rawPage : 1;
 
   const { data, loading, error } = useFetch<FetchResult>("/api/products", {
     params: { page, limit: PAGE_SIZE },
@@ -60,10 +65,15 @@ export default function Home() {
   const totalPages = data?.pagination.totalPages ?? 1;
   const totalItems = data?.pagination.totalItems ?? 0;
 
-  return (
-    <div className="mx-auto max-w-full px-4 py-10">
-      <h1 className="mb-2 text-start text-lg font-bold">Our Perfumes</h1>
+  const goToPage = useCallback(
+    (next: number) => {
+      router.replace(next <= 1 ? "/" : `/?page=${next}`, { scroll: false });
+    },
+    [router]
+  );
 
+  return (
+    <>
       {error && (
         <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
           {error}
@@ -88,12 +98,24 @@ export default function Home() {
               totalPages={totalPages}
               totalItems={totalItems}
               limit={PAGE_SIZE}
-              onPageChange={setPage}
+              onPageChange={goToPage}
               isLoading={loading}
             />
           </div>
         </>
       )}
+    </>
+  );
+}
+
+export default function Home() {
+  return (
+    <div className="mx-auto max-w-full px-4 py-10">
+      <h1 className="mb-2 text-start text-lg font-bold">Our Perfumes</h1>
+
+      <Suspense fallback={<ProductGridSkeleton />}>
+        <HomeContent />
+      </Suspense>
     </div>
   );
 }
