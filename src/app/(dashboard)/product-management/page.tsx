@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/button";
+import Dialog from "@/components/ui/dialog";
 import Pagination from "@/components/ui/pagination";
 
 const PAGE_SIZE = 10;
@@ -62,6 +63,10 @@ export default function ProductManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
   useEffect(() => {
     let cancelled = false;
 
@@ -112,6 +117,45 @@ export default function ProductManagement() {
       .finally(() => setLoading(false));
   };
 
+  const refresh = async () => {
+    const data = await fetchProducts(page);
+    setProducts(data.products);
+    setTotalPages(data.pagination.totalPages);
+    setTotalItems(data.pagination.totalItems);
+  };
+
+  const confirmDelete = (product: Product) => {
+    setDeleteError("");
+    setDeleteTarget(product);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      const res = await fetch(`/api/products/${deleteTarget._id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setDeleteError(data.error || "Failed to delete product");
+        return;
+      }
+
+      setDeleteTarget(null);
+      await refresh();
+    } catch {
+      setDeleteError("Something went wrong. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const categoryName = (category: Product["category"]) =>
     typeof category === "object" ? category.name : "—";
 
@@ -119,12 +163,14 @@ export default function ProductManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className=" font-bold">Product Management</h1>
-        <div>
+        <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500">
             {totalItems} product{totalItems === 1 ? "" : "s"}
           </span>
-          <Link href="/product-management/create" >
-            <Button size="sm" variant="outline">Create Product</Button>
+          <Link href="/product-management/create">
+            <Button size="sm" variant="outline">
+              Create Product
+            </Button>
           </Link>
         </div>
       </div>
@@ -161,6 +207,7 @@ export default function ProductManagement() {
                   <th className="px-4 py-3 font-medium">Category</th>
                   <th className="px-4 py-3 font-medium">Price</th>
                   <th className="px-4 py-3 font-medium">Stock</th>
+                  <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-foreground/10">
@@ -187,6 +234,23 @@ export default function ProductManagement() {
                     </td>
                     <td className="px-4 py-3">${product.price.toFixed(2)}</td>
                     <td className="px-4 py-3">{product.stock}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Link href={`/product-management/edit/${product._id}`}>
+                          <Button size="sm" variant="outline">
+                            Edit
+                          </Button>
+                        </Link>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => confirmDelete(product)}
+                          className="border-red-500/40 text-red-500 hover:bg-red-50"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -203,6 +267,50 @@ export default function ProductManagement() {
           />
         </>
       )}
+
+      <Dialog
+        open={!!deleteTarget}
+        onClose={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+        title="Delete product"
+      >
+        <p className="mb-4 text-foreground/70">
+          Are you sure you want to delete{" "}
+          <span className="font-semibold text-foreground">
+            {deleteTarget?.name}
+          </span>
+          ? This action cannot be undone.
+        </p>
+
+        {deleteError && (
+          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            {deleteError}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            type="button"
+            onClick={() => setDeleteTarget(null)}
+            disabled={deleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            type="button"
+            loading={deleting}
+            onClick={handleDelete}
+            className="bg-red-500 text-white hover:bg-red-600"
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
+        </div>
+      </Dialog>
     </div>
   );
 }
