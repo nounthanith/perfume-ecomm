@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import Button from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
@@ -46,7 +47,10 @@ export default function ProductCart({
   };
 
   return (
-    <div className="overflow-hidden rounded-none border border-foreground/10">
+    <Link
+      href={`/product/${product.slug}`}
+      className="block overflow-hidden rounded-none border border-foreground/10 transition-shadow hover:shadow-md"
+    >
       <div className="relative aspect-square w-full bg-foreground/5">
         {product.images[0] ? (
           <Image
@@ -87,6 +91,6 @@ export default function ProductCart({
           {outOfStock ? "Sold Out" : added ? "Added ✓" : "Add to Cart"}
         </Button> */}
       </div>
-    </div>
+    </Link>
   );
 }

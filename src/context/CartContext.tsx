@@ -23,7 +23,7 @@ interface CartContextValue {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  addToCart: (item: Omit<CartItem, "quantity">) => void;
+  addToCart: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   updateQuantity: (id: string, quantity: number) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
@@ -58,18 +58,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
 
-  const addToCart = useCallback((item: Omit<CartItem, "quantity">) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i._id === item._id);
-      if (existing) {
-        return prev.map((i) =>
-          i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-    setIsOpen(true);
-  }, []);
+  const addToCart = useCallback(
+    (item: Omit<CartItem, "quantity">, qty = 1) => {
+      setItems((prev) => {
+        const existing = prev.find((i) => i._id === item._id);
+        if (existing) {
+          return prev.map((i) =>
+            i._id === item._id ? { ...i, quantity: i.quantity + qty } : i
+          );
+        }
+        return [...prev, { ...item, quantity: qty }];
+      });
+      setIsOpen(true);
+    },
+    []
+  );
 
   const updateQuantity = useCallback((id: string, quantity: number) => {
     setItems((prev) =>
