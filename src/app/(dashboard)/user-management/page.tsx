@@ -126,10 +126,10 @@ export default function UserManagementPage() {
             </div>
           )}
           <div className="min-w-0">
-            <p className="max-w-[220px] truncate font-medium text-foreground">
+            <p className="max-w-55 truncate font-medium text-foreground">
               {user.name}
             </p>
-            <p className="max-w-[220px] truncate text-xs text-foreground/50">
+            <p className="max-w-55 truncate text-xs text-foreground/50">
               {user.email}
             </p>
           </div>
