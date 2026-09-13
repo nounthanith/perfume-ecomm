@@ -52,6 +52,7 @@ export async function paginateAll<T>(
         limit?: number;
         filter?: Record<string, unknown>;
         populate?: PopulateSpec[];
+        select?: string;
     } = {}
 ): Promise<PaginatedResult<T>> {
     await connectDB();
@@ -62,6 +63,7 @@ export async function paginateAll<T>(
     const skip = (page - 1) * limit;
 
     let query = model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    if (options.select) query = query.select(options.select);
     for (const pop of options.populate ?? []) {
         query = pop.select
             ? query.populate(pop.path, pop.select)

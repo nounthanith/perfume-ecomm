@@ -23,6 +23,7 @@ const navItems: NavItem[] = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Products", href: "/product-management", icon: Package },
     { label: "Categories", href: "/category-management", icon: FolderTree },
+    { label: "Users", href: "/user-management", icon: User },
 ];
 
 export default function Sidebar({ user }: { user?: { name?: string; email?: string } }) {
