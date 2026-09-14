@@ -1,5 +1,5 @@
 import Link from "next/link";
-import UserForm from "@/components/UserForm";
+import UserForm from "@/components/shared/UserForm";
 
 export default function CreateUserPage() {
   return (

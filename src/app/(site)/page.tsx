@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import ProductCart, { type ProductCardData } from "@/components/ProductCart";
+import ProductCart, { type ProductCardData } from "@/components/shared/ProductCart";
 import Pagination from "@/components/ui/pagination";
 import Skeleton from "@/components/ui/skeleton";
 import { useFetch } from "@/hooks/useFetch";

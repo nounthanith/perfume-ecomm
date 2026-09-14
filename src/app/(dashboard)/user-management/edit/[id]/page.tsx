@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
-import UserForm, { type UserFormData } from "@/components/UserForm";
+import UserForm, { type UserFormData } from "@/components/shared/UserForm";
 
 type Props = {
   params: Promise<{ id: string }>;

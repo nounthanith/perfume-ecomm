@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import "@/models/Category";
-import ProductGallery from "@/components/ProductGallery";
-import AddToCartButton from "@/components/AddToCartButton";
+import ProductGallery from "@/components/shared/ProductGallery";
+import AddToCartButton from "@/components/shared/AddToCartButton";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
