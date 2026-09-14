@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import { UserRound } from "lucide-react";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import ImageUpload from "@/components/ui/image-upload";
@@ -135,20 +136,25 @@ export default function ProfilePage() {
       <div className="mx-auto w-full max-w-4xl space-y-8">
 
         {/* Page Header */}
-        <div className="border-b border-foreground/10 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Account Settings
-          </h1>
-          <p className="mt-1 text-sm text-foreground/60">
-            Manage your public profile and account detail configuration
-          </p>
+        <div className="flex items-center gap-4 border-b border-foreground/10 pb-6">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-foreground/10 bg-foreground/5">
+            <UserRound className="h-5 w-5 text-foreground/80" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold tracking-tight sm:text-xl">
+              Profile Settings
+            </h1>
+            <p className="mt-0.5 text-sm text-foreground/60">
+              Manage your public profile and account details
+            </p>
+          </div>
         </div>
 
         {/* Full-width Main Layout */}
         <div className="w-full space-y-8">
 
           {/* User Profile Overview */}
-          <div className="flex w-full flex-col items-center justify-between gap-6 rounded-2xl border border-foreground/10 bg-foreground/5 p-6 backdrop-blur-xl sm:flex-row sm:p-8">
+          <div className="flex w-full flex-col items-center justify-between gap-6 border border-foreground/10 bg-foreground/5 p-6 sm:flex-row sm:p-8">
             <div className="flex flex-col items-center gap-5 sm:flex-row">
               {user.image ? (
                 <Image
@@ -156,10 +162,10 @@ export default function ProfilePage() {
                   alt={user.name}
                   width={96}
                   height={96}
-                  className="h-20 w-20 rounded-full border border-foreground/20 object-cover shadow-sm"
+                  className="h-20 w-20 border border-foreground/10 object-cover"
                 />
               ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-foreground/20 bg-foreground/10 text-xl font-semibold text-foreground">
+                <div className="flex h-20 w-20 items-center justify-center border border-foreground/10 bg-foreground/10 text-xl font-semibold text-foreground">
                   {initials}
                 </div>
               )}
@@ -168,7 +174,7 @@ export default function ProfilePage() {
                   <h2 className="text-xl font-semibold text-foreground">
                     {user.name}
                   </h2>
-                  <span className="rounded-full border border-foreground/15 bg-foreground/10 px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider text-foreground/70">
+                  <span className="border border-foreground/10 bg-foreground/10 px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider text-foreground/70">
                     {user.role}
                   </span>
                 </div>
@@ -180,7 +186,7 @@ export default function ProfilePage() {
               <Button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="w-full sm:w-auto bg-foreground/10 text-foreground hover:bg-foreground/20 border border-foreground/15"
+                className="w-full border border-foreground/15 bg-foreground/10 text-foreground hover:bg-foreground/20 sm:w-auto"
               >
                 Go to Dashboard
               </Button>
@@ -190,13 +196,13 @@ export default function ProfilePage() {
           {/* Form Controls */}
           <form onSubmit={handleSave} className="w-full space-y-6">
             {error && (
-              <div className="w-full rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-500">
+              <div className="w-full border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-500">
                 {error}
               </div>
             )}
 
-            <div className="w-full space-y-6 rounded-2xl border border-foreground/10 bg-foreground/5 p-6 backdrop-blur-xl sm:p-8">
-              <h3 className="text-lg font-semibold text-foreground">
+            <div className="w-full space-y-6 border border-foreground/10 bg-foreground/5 p-6 sm:p-8">
+              <h3 className="text-lg font-bold tracking-tight text-foreground">
                 Personal Information
               </h3>
 
