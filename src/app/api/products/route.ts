@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
-import "@/models/Category";
+import Category from "@/models/Category";
 import { requireRole, forbidden } from "@/lib/guard";
 import { create, paginateAll } from "@/lib/crud";
 
@@ -19,10 +19,17 @@ export async function GET(req: NextRequest) {
   const page = searchParams.get("page");
   const limit = searchParams.get("limit");
   const search = searchParams.get("search");
+  const categorySlug = searchParams.get("category");
 
   const filter: Record<string, unknown> = {};
   if (search) {
     filter.name = { $regex: search, $options: "i" };
+  }
+  if (categorySlug) {
+    const category = await Category.findOne({ slug: categorySlug })
+      .select("_id")
+      .lean();
+    filter.category = category ? category._id : null;
   }
 
   if (page) {

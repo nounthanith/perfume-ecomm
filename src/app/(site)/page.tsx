@@ -3,6 +3,7 @@
 import { Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProductCart, { type ProductCardData } from "@/components/shared/ProductCart";
+import CategoryFilter, { CategoryOption } from "@/components/shared/CategoryFilter";
 import Pagination from "@/components/ui/pagination";
 import Skeleton from "@/components/ui/skeleton";
 import { useFetch } from "@/hooks/useFetch";
@@ -20,6 +21,10 @@ interface PaginationData {
 interface FetchResult {
   products: ProductCardData[];
   pagination: PaginationData;
+}
+
+interface CategoriesResult {
+  categories: CategoryOption[];
 }
 
 function ProductCardSkeleton() {
@@ -56,10 +61,18 @@ function HomeContent() {
 
   const rawPage = Number(searchParams.get("page") ?? "1");
   const page = Number.isInteger(rawPage) && rawPage >= 1 ? rawPage : 1;
+  const category = searchParams.get("category");
 
   const { data, loading, error } = useFetch<FetchResult>("/api/products", {
-    params: { page, limit: PAGE_SIZE },
+    params: {
+      page,
+      limit: PAGE_SIZE,
+      ...(category ? { category } : {}),
+    },
   });
+
+  const { data: categoryData, loading: categoriesLoading } =
+    useFetch<CategoriesResult>("/api/categories");
 
   const products = data?.products ?? [];
   const totalPages = data?.pagination.totalPages ?? 1;
@@ -67,13 +80,34 @@ function HomeContent() {
 
   const goToPage = useCallback(
     (next: number) => {
-      router.replace(next <= 1 ? "/" : `/?page=${next}`, { scroll: false });
+      const params = new URLSearchParams();
+      if (category) params.set("category", category);
+      if (next > 1) params.set("page", String(next));
+      const qs = params.toString();
+      router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+    },
+    [router, category]
+  );
+
+  const goToCategory = useCallback(
+    (slug: string | null) => {
+      const params = new URLSearchParams();
+      if (slug) params.set("category", slug);
+      const qs = params.toString();
+      router.replace(qs ? `/?${qs}` : "/", { scroll: false });
     },
     [router]
   );
 
   return (
     <>
+      <CategoryFilter
+        categories={categoryData?.categories ?? []}
+        loading={categoriesLoading}
+        active={category}
+        onSelect={goToCategory}
+      />
+
       {error && (
         <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
           {error}

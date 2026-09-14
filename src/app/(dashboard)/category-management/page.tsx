@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FolderTree, Plus, Tags } from "lucide-react";
+import { FolderTree, Plus, Pencil, Trash2, Tags } from "lucide-react";
 import Button from "@/components/ui/button";
+import Dialog from "@/components/ui/dialog";
 import Table, { type TableColumn } from "@/components/ui/table";
 import { useFetch } from "@/hooks/useFetch";
 
@@ -50,6 +51,42 @@ export default function CategoryManagement() {
     setPage(next);
   };
 
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const confirmDelete = (category: Category) => {
+    setDeleteError("");
+    setDeleteTarget(category);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      const res = await fetch(`/api/categories/${deleteTarget._id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const responseData = await res.json();
+
+      if (!res.ok) {
+        setDeleteError(responseData.error || "Failed to delete category");
+        return;
+      }
+
+      setDeleteTarget(null);
+      await refetch();
+    } catch {
+      setDeleteError("Something went wrong. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const columns: TableColumn<Category>[] = [
     {
       key: "category",
@@ -89,6 +126,30 @@ export default function CategoryManagement() {
         <p className="line-clamp-2 text-foreground/60">
           {category.description || "—"}
         </p>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      render: (category) => (
+        <div className="flex items-center justify-end gap-1">
+          <Link
+            href={`/category-management/edit/${category._id}`}
+            title={`Edit ${category.name}`}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => confirmDelete(category)}
+            title={`Delete ${category.name}`}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-foreground/60 transition-colors hover:bg-red-500/10 hover:text-red-600"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       ),
     },
   ];
@@ -150,6 +211,51 @@ export default function CategoryManagement() {
           isLoading: loading,
         }}
       />
+
+      <Dialog
+        open={!!deleteTarget}
+        onClose={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+        title="Delete category"
+      >
+        <p className="mb-4 text-foreground/70">
+          Are you sure you want to delete{" "}
+          <span className="font-semibold text-foreground">
+            {deleteTarget?.name}
+          </span>
+          ? This action cannot be undone.
+        </p>
+
+        {deleteError && (
+          <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-600">
+            {deleteError}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            type="button"
+            onClick={() => setDeleteTarget(null)}
+            disabled={deleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            type="button"
+            loading={deleting}
+            onClick={handleDelete}
+            className="gap-1.5"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
+        </div>
+      </Dialog>
     </div>
   );
 }
