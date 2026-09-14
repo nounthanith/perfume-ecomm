@@ -20,7 +20,7 @@ export default function CategoryFilter({
   onSelect,
 }: CategoryFilterProps) {
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-2">
+    <div className="mb-2 flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => onSelect(null)}
