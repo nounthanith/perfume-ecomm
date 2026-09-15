@@ -12,6 +12,7 @@ function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -20,6 +21,11 @@ function RegisterForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    await signIn("google", { callbackUrl: "/" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,8 +138,9 @@ function RegisterForm() {
         <Button
           variant="outline"
           size="lg"
+          loading={googleLoading}
           className="w-full"
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={handleGoogleSignIn}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
@@ -153,7 +160,7 @@ function RegisterForm() {
               fill="#EA4335"
             />
           </svg>
-          Register with Google
+          {googleLoading ? "Redirecting to Google..." : "Register with Google"}
         </Button>
 
         <p className="text-center text-sm text-gray-500">

@@ -14,6 +14,7 @@ function LoginForm() {
   const verified = searchParams.get("verified") === "1";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -21,6 +22,11 @@ function LoginForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    await signIn("google", { callbackUrl: "/" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,8 +131,9 @@ function LoginForm() {
         <Button
           variant="outline"
           size="lg"
+          loading={googleLoading}
           className="w-full"
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={handleGoogleSignIn}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
@@ -146,7 +153,7 @@ function LoginForm() {
               fill="#EA4335"
             />
           </svg>
-          Sign in with Google
+          {googleLoading ? "Redirecting to Google..." : "Sign in with Google"}
         </Button>
 
         <p className="text-center text-sm text-gray-500">
