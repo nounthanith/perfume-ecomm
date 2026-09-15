@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
+import Skeleton from "@/components/ui/skeleton";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -161,6 +162,60 @@ export default function RegisterPage() {
             Sign in
           </Link>
         </p>
+      </div>
+    </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center px-4">
+          <div className="w-full max-w-md">
+            <RegisterSkeleton />
+          </div>
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-3 text-center">
+        <Skeleton className="mx-auto h-8 w-56" />
+        <Skeleton className="mx-auto h-4 w-40" />
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-11 w-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-12" />
+          <Skeleton className="h-11 w-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-11 w-full" />
+        </div>
+        <Skeleton className="h-11 w-full" />
+      </div>
+
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-px w-full" />
+        <Skeleton className="h-3 w-7" />
+        <Skeleton className="h-px w-full" />
+      </div>
+
+      <div className="space-y-4">
+        <Skeleton className="h-11 w-full" />
+        <Skeleton className="mx-auto h-4 w-44" />
       </div>
     </div>
   );

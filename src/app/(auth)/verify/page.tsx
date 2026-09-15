@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
+import Skeleton from "@/components/ui/skeleton";
 
 function VerifyForm() {
   const router = useRouter();
@@ -18,6 +19,7 @@ function VerifyForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [checking, setChecking] = useState(Boolean(queryEmail));
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -38,7 +40,10 @@ function VerifyForm() {
         sessionStorage.removeItem("pendingSignup");
         router.replace("/login?verified=1");
       })
-      .catch(() => { });
+      .catch(() => { })
+      .finally(() => {
+        if (!cancelled) setChecking(false);
+      });
 
     return () => {
       cancelled = true;
@@ -131,66 +136,97 @@ function VerifyForm() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">Verify Your Email</h1>
-          <p className="mt-2 text-gray-500">
-            We sent a 6-digit code to your email. Enter it below to activate
-            your account.
-          </p>
-        </div>
-
-        <form onSubmit={handleVerify} className="space-y-4">
-          {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-              {error}
+        {checking ? (
+          <VerifySkeleton />
+        ) : (
+          <>
+            <div className="text-center">
+              <h1 className="text-3xl font-bold">Verify Your Email</h1>
+              <p className="mt-2 text-gray-500">
+                We sent a 6-digit code to your email. Enter it below to activate
+                your account.
+              </p>
             </div>
-          )}
 
-          {/* <Input
-            label="Email"
-            name="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-          /> */}
+            <form onSubmit={handleVerify} className="space-y-4">
+              {error && (
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
 
-          <Input
-            label="Verification Code"
-            name="otp"
-            type="text"
-            inputMode="numeric"
-            required
-            value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-            placeholder="6-digit code"
-            maxLength={6}
-          />
+              {/* <Input
+                label="Email"
+                name="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              /> */}
 
-          <Button type="submit" size="lg" loading={loading} className="w-full">
-            {loading ? "Verifying..." : "Verify Email"}
-          </Button>
-        </form>
+              <Input
+                label="Verification Code"
+                name="otp"
+                type="text"
+                inputMode="numeric"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                placeholder="6-digit code"
+                maxLength={6}
+              />
 
-        <div className="text-center text-sm text-gray-500">
-          Didn&apos;t receive the code?{" "}
-          <button
-            type="button"
-            onClick={handleResend}
-            disabled={resending}
-            className="font-medium text-foreground hover:underline disabled:opacity-50"
-          >
-            {resending ? "Sending..." : "Resend code"}
-          </button>
+              <Button type="submit" size="lg" loading={loading} className="w-full">
+                {loading ? "Verifying..." : "Verify Email"}
+              </Button>
+            </form>
+
+            <div className="text-center text-sm text-gray-500">
+              Didn&apos;t receive the code?{" "}
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="font-medium text-foreground hover:underline disabled:opacity-50"
+              >
+                {resending ? "Sending..." : "Resend code"}
+              </button>
+            </div>
+
+            <p className="text-center text-sm text-gray-500">
+              Already verified?{" "}
+              <Link href="/login" className="font-medium text-foreground hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VerifySkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-3 text-center">
+        <Skeleton className="mx-auto h-8 w-56" />
+        <Skeleton className="mx-auto h-4 w-80 max-w-full" />
+        <Skeleton className="mx-auto h-4 w-64 max-w-full" />
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-11 w-full" />
         </div>
+        <Skeleton className="h-11 w-full" />
+      </div>
 
-        <p className="text-center text-sm text-gray-500">
-          Already verified?{" "}
-          <Link href="/login" className="font-medium text-foreground hover:underline">
-            Sign in
-          </Link>
-        </p>
+      <div className="space-y-2 text-center">
+        <Skeleton className="mx-auto h-4 w-56" />
+        <Skeleton className="mx-auto h-4 w-40" />
       </div>
     </div>
   );
@@ -200,8 +236,10 @@ export default function VerifyPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-gray-500">Loading...</p>
+        <div className="flex min-h-screen items-center justify-center px-4">
+          <div className="w-full max-w-md">
+            <VerifySkeleton />
+          </div>
         </div>
       }
     >
