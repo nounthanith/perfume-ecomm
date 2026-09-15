@@ -51,12 +51,12 @@ function stockBadge(stock: number) {
   }
   if (stock <= 5) {
     return {
-      label: `Low · ${stock}`,
+      label: `${stock}`,
       className: "bg-amber-500/10 text-amber-600",
     };
   }
   return {
-    label: `${stock} in stock`,
+    label: `${stock}`,
     className: "bg-emerald-500/10 text-emerald-600",
   };
 }
@@ -136,10 +136,10 @@ export default function ProductManagement() {
             </div>
           )}
           <div className="min-w-0">
-            <p className="max-w-[220px] truncate font-medium text-foreground">
+            <p className="max-w-55 truncate font-medium text-foreground">
               {product.name}
             </p>
-            <p className="max-w-[220px] truncate text-xs text-foreground/50">
+            <p className="max-w-55 truncate text-xs text-foreground/50">
               {product.slug}
             </p>
           </div>
@@ -155,7 +155,7 @@ export default function ProductManagement() {
         const name =
           typeof product.category === "object" ? product.category.name : "—";
         return (
-          <span className="inline-flex max-w-[160px] truncate rounded-full border border-foreground/10 bg-foreground/5 px-2.5 py-1 text-xs font-medium text-foreground/70">
+          <span className="inline-flex max-w-40 truncate rounded-full border border-foreground/10 bg-foreground/5 px-2.5 py-1 text-xs font-medium text-foreground/70">
             {name}
           </span>
         );
