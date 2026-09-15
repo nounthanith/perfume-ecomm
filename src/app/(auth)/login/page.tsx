@@ -28,6 +28,20 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      const checkRes = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email }),
+      });
+
+      if (checkRes.ok) {
+        const check = await checkRes.json();
+        if (check.exists && check.emailVerified === false) {
+          setError("Your email is not verified. Please check your inbox for the verification code.");
+          return;
+        }
+      }
+
       const result = await signIn("credentials", {
         email: form.email,
         password: form.password,
