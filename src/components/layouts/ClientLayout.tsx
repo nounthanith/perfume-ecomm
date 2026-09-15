@@ -13,13 +13,10 @@ export default function ClientLayout() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-const navItems = isLoggedIn
-    ? [{ label: "Home", path: "/" }]
-    : [
-        { label: "Home", path: "/" },
-        { label: "Login", path: "/login" },
-        { label: "Register", path: "/register" },
-      ];
+  const navItems = [
+    { label: "Home", path: "/" },
+    { label: "Blog", path: "/blog" }
+  ];
 
   const linkClass = (path: string) =>
     `px-3 py-2 text-sm font-medium transition-colors ${pathname === path
@@ -69,7 +66,7 @@ const navItems = isLoggedIn
             <>
               <Link
                 href="/login"
-                className="border border-foreground px- py-0 text-sm font-medium text-foreground transition-colors hover:bg-foreground/10"
+                className="border border-foreground px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-foreground/10"
               >
                 Login
               </Link>
