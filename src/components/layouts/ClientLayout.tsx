@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Gem, Menu, X } from "lucide-react";
 import ButtonLogout from "../providers/ButtonLogout";
+import ThemeToggle from "./ThemeToggle";
 
 export default function ClientLayout() {
   const { status } = useSession();
@@ -49,6 +50,7 @@ export default function ClientLayout() {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           {isLoggedIn ? (
             <>
               <Link
@@ -80,15 +82,18 @@ export default function ClientLayout() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          className="flex h-9 w-9 items-center justify-center border border-foreground/10 text-foreground/80 transition-colors hover:bg-foreground/10 md:hidden"
-        >
-          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            className="flex h-9 w-9 items-center justify-center border border-foreground/10 text-foreground/80 transition-colors hover:bg-foreground/10"
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {menuOpen && (
