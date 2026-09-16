@@ -88,6 +88,7 @@ export async function createCategory(name: string) {
 Defined in `src/models/User.ts`:
 
 - `user` — regular user (default)
+- `cashier` — point-of-sale / checkout access (`/pos`, sell management)
 - `admin` — full access
 
 To change a user's role, update it directly in MongoDB:

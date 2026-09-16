@@ -14,7 +14,7 @@ interface UserData {
   _id: string;
   name: string;
   email: string;
-  role: "user" | "admin";
+  role: "user" | "admin" | "cashier";
   provider: "credentials" | "google";
   avatar?: string;
   emailVerified?: boolean;
@@ -35,13 +35,23 @@ interface FetchResult {
 }
 
 function roleBadge(role: UserData["role"]) {
-  const isAdmin = role === "admin";
-  return {
-    label: isAdmin ? "Admin" : "User",
-    className: isAdmin
-      ? "border border-foreground/15 bg-foreground/10 text-foreground"
-      : "bg-foreground/5 text-foreground/60",
+  const styles = {
+    admin: {
+      className:
+        "border border-foreground/15 bg-foreground/10 text-foreground",
+      label: "Admin",
+    },
+    cashier: {
+      className:
+        "border border-amber-500/20 bg-amber-500/10 text-amber-600",
+      label: "Cashier",
+    },
+    user: {
+      className: "bg-foreground/5 text-foreground/60",
+      label: "User",
+    },
   };
+  return styles[role];
 }
 
 function formatDate(value?: string) {

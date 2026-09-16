@@ -191,6 +191,15 @@ export default function ProfilePage() {
                 Go to Dashboard
               </Button>
             )}
+            {user.role === "cashier" && (
+              <Button
+                type="button"
+                onClick={() => router.push("/pos")}
+                className="w-full border border-foreground/15 bg-foreground/10 text-foreground hover:bg-foreground/20 sm:w-auto"
+              >
+                Go to POS
+              </Button>
+            )}
           </div>
 
           {/* Form Controls */}

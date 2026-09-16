@@ -60,7 +60,14 @@ function LoginForm() {
         return;
       }
 
-      router.push("/");
+      const meRes = await fetch("/api/auth/me");
+      let role: string | undefined;
+      if (meRes.ok) {
+        const me = await meRes.json();
+        role = me?.user?.role;
+      }
+
+      router.push(role === "cashier" ? "/pos" : "/");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");

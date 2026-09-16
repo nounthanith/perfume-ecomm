@@ -8,7 +8,7 @@ import Input from "@/components/ui/input";
 export interface UserFormData {
   name: string;
   email: string;
-  role: "user" | "admin";
+  role: "user" | "admin" | "cashier";
   emailVerified: boolean;
 }
 
@@ -25,7 +25,9 @@ export default function UserForm({ mode, userId, initial }: UserFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [email, setEmail] = useState(initial?.email ?? "");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"user" | "admin">(initial?.role ?? "user");
+  const [role, setRole] = useState<"user" | "admin" | "cashier">(
+    initial?.role ?? "user"
+  );
   const [emailVerified, setEmailVerified] = useState(
     initial?.emailVerified ?? true
   );
@@ -150,10 +152,11 @@ export default function UserForm({ mode, userId, initial }: UserFormProps) {
           name="role"
           required
           value={role}
-          onChange={(e) => setRole(e.target.value as "user" | "admin")}
+          onChange={(e) => setRole(e.target.value as "user" | "admin" | "cashier")}
           className="mt-1 block w-full rounded-lg border border-foreground/20 bg-background px-3 py-2.5 text-sm text-foreground shadow-sm transition-colors focus:border-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
         >
           <option value="user">User</option>
+          <option value="cashier">Cashier</option>
           <option value="admin">Admin</option>
         </select>
       </div>

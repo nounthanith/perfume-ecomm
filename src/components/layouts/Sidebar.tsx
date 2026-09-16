@@ -10,6 +10,7 @@ import {
     User,
     Menu,
     X,
+    Store,
 } from "lucide-react";
 import ButtonLogout from "@/components/providers/ButtonLogout";
 
@@ -21,8 +22,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { label: "POS", href: "/pos", icon: Store },
     { label: "Products", href: "/product-management", icon: Package },
     { label: "Categories", href: "/category-management", icon: FolderTree },
+    { label: "Sell", href: "/sell-management", icon: Package },
     { label: "Users", href: "/user-management", icon: User },
 ];
 

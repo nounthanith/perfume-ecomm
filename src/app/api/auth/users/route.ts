@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 const USER_SELECT = "-password -googleId -otp -otpExpires";
-const VALID_ROLES = ["user", "admin"] as const;
+const VALID_ROLES = ["user", "admin", "cashier"] as const;
 
 export async function GET(req: NextRequest) {
     await connectDB();
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
         if (role && !VALID_ROLES.includes(role)) {
             return NextResponse.json(
-                { error: "Invalid role. Must be 'user' or 'admin'" },
+                { error: "Invalid role. Must be 'user', 'cashier' or 'admin'" },
                 { status: 400 }
             );
         }

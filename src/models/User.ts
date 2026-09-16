@@ -17,7 +17,7 @@ const UserSchema = new Schema<IUserDocument>(
             },
         },
         googleId: { type: String },
-        role: { type: String, enum: ['user', 'admin'], default: 'user' },
+        role: { type: String, enum: ['user', 'admin', 'cashier'], default: 'user' },
         avatar: { type: String, default: '' },
         provider: { type: String, enum: ['credentials', 'google'], default: 'credentials' },
         emailVerified: { type: Boolean, default: false },

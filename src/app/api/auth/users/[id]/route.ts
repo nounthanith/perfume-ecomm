@@ -9,7 +9,7 @@ type RouteContext = {
 };
 
 const USER_SELECT = "-password -googleId -otp -otpExpires";
-const VALID_ROLES = ["user", "admin"] as const;
+const VALID_ROLES = ["user", "admin", "cashier"] as const;
 
 export async function GET(_req: NextRequest, ctx: RouteContext) {
     const session = await requireRole("admin");
@@ -45,7 +45,7 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
 
         if (role && !VALID_ROLES.includes(role)) {
             return NextResponse.json(
-                { error: "Invalid role. Must be 'user' or 'admin'" },
+                { error: "Invalid role. Must be 'user', 'cashier' or 'admin'" },
                 { status: 400 }
             );
         }
