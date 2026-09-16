@@ -395,7 +395,7 @@ export default function PosPage() {
 
       {/* ===================== Cart ===================== */}
       <section
-        className={`${mobileView === "cart" ? "flex" : "hidden"} min-h-0 flex-1 flex-col border-t border-foreground/10 bg-foreground/[0.02] lg:flex-none lg:w-[400px] lg:border-l lg:border-t-0 lg:flex`}
+        className={`${mobileView === "cart" ? "flex" : "hidden"} min-h-0 flex-1 flex-col overflow-y-auto border-t border-foreground/10 bg-foreground/[0.02] lg:flex-none lg:w-[400px] lg:overflow-hidden lg:border-l lg:border-t-0 lg:flex`}
       >
         {/* Cart header */}
         <div className="flex shrink-0 items-center justify-between border-b border-foreground/10 px-5 py-4">
@@ -428,7 +428,7 @@ export default function PosPage() {
         </div>
 
         {/* Cart items */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2 lg:max-h-[44vh] lg:min-h-0">
+        <div className="px-4 py-2 lg:min-h-0 lg:flex-1 lg:max-h-[44vh] lg:overflow-y-auto">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-14 text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-foreground/15 bg-foreground/[0.02]">
