@@ -155,15 +155,7 @@ function VerifyForm() {
                 </div>
               )}
 
-              {/* <Input
-                label="Email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-              /> */}
+              
 
               <Input
                 label="Verification Code"
