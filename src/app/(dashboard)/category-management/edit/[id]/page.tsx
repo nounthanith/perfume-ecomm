@@ -25,7 +25,7 @@ export default async function EditCategoryPage({ params }: Props) {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-full space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Edit Category</h1>
         <Link
@@ -35,8 +35,9 @@ export default async function EditCategoryPage({ params }: Props) {
           Back to categories
         </Link>
       </div>
-
-      <CategoryForm mode="edit" categoryId={id} initial={initial} />
+      <div className="max-w-2xl">
+        <CategoryForm mode="edit" categoryId={id} initial={initial} />
+      </div>
     </div>
   );
 }

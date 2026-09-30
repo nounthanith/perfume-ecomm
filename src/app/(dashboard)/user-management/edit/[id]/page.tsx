@@ -24,7 +24,7 @@ export default async function EditUserPage({ params }: Props) {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-full">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Edit User</h1>
         <Link
@@ -35,7 +35,7 @@ export default async function EditUserPage({ params }: Props) {
         </Link>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 max-w-2xl">
         <UserForm mode="edit" userId={id} initial={initial} />
       </div>
     </div>

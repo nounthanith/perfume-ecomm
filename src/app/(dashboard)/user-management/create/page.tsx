@@ -3,7 +3,7 @@ import UserForm from "@/components/shared/UserForm";
 
 export default function CreateUserPage() {
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-full">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Create User</h1>
         <Link
@@ -14,7 +14,7 @@ export default function CreateUserPage() {
         </Link>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 max-w-2xl">
         <UserForm mode="create" />
       </div>
     </div>

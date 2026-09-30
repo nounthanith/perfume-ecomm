@@ -33,7 +33,7 @@ export default async function EditProductPage({ params }: Props) {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-full">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Edit Product</h1>
         <Link
@@ -44,7 +44,7 @@ export default async function EditProductPage({ params }: Props) {
         </Link>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 max-w-2xl">
         <ProductForm mode="edit" productId={id} initial={initial} />
       </div>
     </div>

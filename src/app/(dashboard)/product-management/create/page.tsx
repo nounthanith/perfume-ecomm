@@ -3,7 +3,7 @@ import ProductForm from "@/components/shared/ProductForm";
 
 export default function CreateProductPage() {
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-full">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Create Product</h1>
         <Link
@@ -14,7 +14,7 @@ export default function CreateProductPage() {
         </Link>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 max-w-2xl">
         <ProductForm mode="create" />
       </div>
     </div>

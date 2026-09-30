@@ -155,8 +155,6 @@ function VerifyForm() {
                 </div>
               )}
 
-              
-
               <Input
                 label="Verification Code"
                 name="otp"
