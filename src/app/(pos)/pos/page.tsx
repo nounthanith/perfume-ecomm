@@ -278,11 +278,10 @@ export default function PosPage() {
               title={
                 hideUnavailable ? "Show sold out items" : "Hide sold out items"
               }
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all active:scale-95 ${
-                hideUnavailable
-                  ? "border-foreground/15 bg-foreground text-background shadow-sm"
-                  : "border-foreground/10 bg-background text-foreground/60 hover:border-foreground/25 hover:text-foreground"
-              }`}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all active:scale-95 ${hideUnavailable
+                ? "border-foreground/15 bg-foreground text-background shadow-sm"
+                : "border-foreground/10 bg-background text-foreground/60 hover:border-foreground/25 hover:text-foreground"
+                }`}
             >
               {hideUnavailable ? (
                 <EyeOff className="h-4 w-4" />
