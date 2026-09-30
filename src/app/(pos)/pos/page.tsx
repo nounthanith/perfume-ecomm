@@ -241,7 +241,7 @@ export default function PosPage() {
         className={`${mobileView === "products" ? "flex" : "hidden"} min-h-0 flex-1 flex-col lg:flex`}
       >
         {/* Toolbar */}
-        <div className="shrink-0 space-y-3 border-b border-foreground/10 bg-foreground/[0.02] p-4 lg:px-6">
+        <div className="shrink-0 space-y-3 border-b border-foreground/10 bg-foreground/2 p-4 lg:px-6">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
@@ -311,7 +311,7 @@ export default function PosPage() {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/[0.03]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/3">
                 <PackageX className="h-6 w-6 text-foreground/30" />
               </div>
               <p className="font-medium text-foreground">No products found</p>
@@ -394,7 +394,7 @@ export default function PosPage() {
 
       {/* ===================== Cart ===================== */}
       <section
-        className={`${mobileView === "cart" ? "flex" : "hidden"} min-h-0 flex-1 flex-col overflow-y-auto border-t border-foreground/10 bg-foreground/[0.02] lg:flex-none lg:w-[400px] lg:overflow-hidden lg:border-l lg:border-t-0 lg:flex`}
+        className={`${mobileView === "cart" ? "flex" : "hidden"} min-h-0 flex-1 flex-col overflow-y-auto border-t border-foreground/10 bg-foreground/2 lg:flex-none lg:w-100 lg:overflow-hidden lg:border-l lg:border-t-0 lg:flex`}
       >
         {/* Cart header */}
         <div className="flex shrink-0 items-center justify-between border-b border-foreground/10 px-5 py-4">
@@ -430,7 +430,7 @@ export default function PosPage() {
         <div className="px-4 py-2 lg:min-h-0 lg:flex-1 lg:max-h-[44vh] lg:overflow-y-auto">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-14 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-foreground/15 bg-foreground/[0.02]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-foreground/15 bg-foreground/2">
                 <ShoppingCart className="h-6 w-6 text-foreground/25" />
               </div>
               <div>
@@ -450,7 +450,7 @@ export default function PosPage() {
               </Button>
             </div>
           ) : (
-            <ul className="divide-y divide-foreground/[0.05]">
+            <ul className="divide-y divide-foreground/5">
               {cart.map((item) => (
                 <CartItemRow
                   key={item.product._id}
@@ -471,7 +471,7 @@ export default function PosPage() {
             <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground/45">
               Customer
             </p>
-            <div className="flex items-center gap-2 rounded-xl border border-foreground/10 bg-foreground/[0.02] px-3 transition-colors focus-within:border-foreground focus-within:ring-2 focus-within:ring-foreground/15">
+            <div className="flex items-center gap-2 rounded-xl border border-foreground/10 bg-foreground/2 px-3 transition-colors focus-within:border-foreground focus-within:ring-2 focus-within:ring-foreground/15">
               <UserRound className="h-4 w-4 shrink-0 text-foreground/40" />
               <input
                 type="text"
@@ -489,7 +489,7 @@ export default function PosPage() {
               Discount & tax
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] px-3 transition-colors focus-within:border-foreground focus-within:ring-2 focus-within:ring-foreground/15">
+              <div className="rounded-xl border border-foreground/10 bg-foreground/2 px-3 transition-colors focus-within:border-foreground focus-within:ring-2 focus-within:ring-foreground/15">
                 <label
                   htmlFor="discount"
                   className="block pt-1.5 text-[10px] font-medium uppercase tracking-wide text-foreground/45"
@@ -506,7 +506,7 @@ export default function PosPage() {
                   className="h-8 w-full bg-transparent pb-1 text-sm font-semibold text-foreground focus:outline-none"
                 />
               </div>
-              <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] px-3 transition-colors focus-within:border-foreground focus-within:ring-2 focus-within:ring-foreground/15">
+              <div className="rounded-xl border border-foreground/10 bg-foreground/2 px-3 transition-colors focus-within:border-foreground focus-within:ring-2 focus-within:ring-foreground/15">
                 <label
                   htmlFor="tax"
                   className="block pt-1.5 text-[10px] font-medium uppercase tracking-wide text-foreground/45"
@@ -540,7 +540,7 @@ export default function PosPage() {
 
           {/* Cash received */}
           {paymentMethod === "cash" && (
-            <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.02] p-3">
+            <div className="rounded-2xl border border-foreground/10 bg-foreground/2 p-3">
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="amountPaid"
@@ -577,7 +577,7 @@ export default function PosPage() {
           )}
 
           {/* Totals */}
-          <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.02] p-4">
+          <div className="rounded-2xl border border-foreground/10 bg-foreground/2 p-4">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-foreground/45">
               Summary
             </p>
