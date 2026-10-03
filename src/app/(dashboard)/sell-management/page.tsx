@@ -1,11 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { Receipt, ShoppingCart } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Banknote,
+  Gauge,
+  Receipt,
+  ShoppingBag,
+  ShoppingCart,
+} from "lucide-react";
 import Table, { type TableColumn } from "@/components/ui/table";
 import Dialog from "@/components/ui/dialog";
+import BarChart from "@/components/shared/BarChart";
+import StatCard from "@/components/shared/StatCard";
+import TopProducts from "@/components/shared/TopProducts";
 import { useFetch } from "@/hooks/useFetch";
+import {
+  RANGE_LABELS,
+  RANGE_PRESETS,
+  getSalesRange,
+  type RangePreset,
+} from "@/lib/sales-range";
 import type { IOrder, PaymentMethod } from "@/types/order.type";
+import type { SalesReport } from "@/types/sales.type";
 
 const PAGE_SIZE = 10;
 
@@ -53,24 +69,43 @@ function formatCurrency(value: number) {
 
 export default function SellManagementPage() {
   const [page, setPage] = useState(1);
+  const [preset, setPreset] = useState<RangePreset>("week");
+  const [detail, setDetail] = useState<OrderRow | null>(null);
 
-  const { data, loading, error, refetch } = useFetch<FetchResult>(
-    "/api/orders",
-    {
-      params: { page, limit: PAGE_SIZE },
-      cache: false,
-    }
-  );
+  const range = useMemo(() => getSalesRange(preset), [preset]);
+  const from = range.from.toISOString();
+  const to = range.to.toISOString();
+  const tz = -new Date().getTimezoneOffset();
+
+  const {
+    data: report,
+    loading: reportLoading,
+    error: reportError,
+    refetch: refetchReport,
+  } = useFetch<SalesReport>("/api/orders/stats", {
+    params: { preset, unit: range.unit, from, to, tz },
+    cache: false,
+  });
+
+  const { data, loading, error, refetch } = useFetch<FetchResult>("/api/orders", {
+    params: { page, limit: PAGE_SIZE, from, to },
+    cache: false,
+  });
 
   const orders = data?.orders ?? [];
   const totalPages = data?.pagination.totalPages ?? 1;
   const totalItems = data?.pagination.totalItems ?? 0;
-
-  const [detail, setDetail] = useState<OrderRow | null>(null);
+  const summary = report?.summary;
 
   const changePage = (next: number) => {
     if (next === page) return;
     setPage(next);
+  };
+
+  const changePreset = (next: RangePreset) => {
+    if (next === preset) return;
+    setPreset(next);
+    setPage(1);
   };
 
   const columns: TableColumn<OrderRow>[] = [
@@ -117,7 +152,7 @@ export default function SellManagementPage() {
       key: "total",
       header: "Total",
       render: (order) => (
-        <span className="font-semibold text-foreground">
+        <span className="font-semibold tabular-nums text-foreground">
           {formatCurrency(order.total)}
         </span>
       ),
@@ -161,10 +196,131 @@ export default function SellManagementPage() {
               Sell Management
             </h1>
             <p className="text-sm text-foreground/60">
-              Recent point-of-sale transactions
+              Point-of-sale revenue and recent transactions
             </p>
           </div>
         </div>
+
+        {/* Range filter */}
+        <div
+          role="group"
+          aria-label="Filter sales by period"
+          className="flex flex-wrap gap-1 rounded-xl border border-foreground/10 bg-foreground/[0.02] p-1"
+        >
+          {RANGE_PRESETS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => changePreset(option)}
+              aria-pressed={option === preset}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                option === preset
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-foreground/60 hover:text-foreground"
+              }`}
+            >
+              {RANGE_LABELS[option]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Summary */}
+      {reportError ? (
+        <div className="flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600">
+          <span>{reportError}</span>
+          <button
+            type="button"
+            onClick={() => refetchReport()}
+            className="font-medium underline hover:opacity-70"
+          >
+            Retry
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Revenue"
+            value={formatCurrency(summary?.revenue ?? 0)}
+            icon={Banknote}
+            hint={RANGE_LABELS[preset]}
+          />
+          <StatCard
+            label="Orders"
+            value={(summary?.orders ?? 0).toLocaleString()}
+            icon={ShoppingBag}
+            hint={RANGE_LABELS[preset]}
+          />
+          <StatCard
+            label="Units Sold"
+            value={(summary?.units ?? 0).toLocaleString()}
+            icon={ShoppingCart}
+            hint={RANGE_LABELS[preset]}
+          />
+          <StatCard
+            label="Avg Order Value"
+            value={formatCurrency(summary?.avgOrderValue ?? 0)}
+            icon={Gauge}
+            hint={RANGE_LABELS[preset]}
+          />
+        </div>
+      )}
+
+      {/* Charts */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-sm lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-foreground/10 bg-foreground/[0.02] px-5 py-3.5">
+            <p className="text-sm font-medium text-foreground/80">
+              Revenue over time
+            </p>
+            <span className="text-xs text-foreground/50">
+              {RANGE_LABELS[preset]}
+            </span>
+          </div>
+          <div className="px-5 py-5">
+            {reportLoading && !report ? (
+              <div className="h-[220px] animate-pulse rounded-xl bg-foreground/[0.07]" />
+            ) : (
+              <BarChart
+                data={(report?.series ?? []).map((point) => ({
+                  label: point.label,
+                  title: point.title,
+                  value: point.revenue,
+                  meta: `${point.orders} ${point.orders === 1 ? "order" : "orders"}`,
+                }))}
+                formatValue={formatCurrency}
+                emptyMessage={`No sales recorded ${RANGE_LABELS[preset].toLowerCase()}`}
+              />
+            )}
+          </div>
+        </section>
+
+        <section className="overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-sm">
+          <div className="flex items-center justify-between border-b border-foreground/10 bg-foreground/[0.02] px-5 py-3.5">
+            <p className="text-sm font-medium text-foreground/80">Top Products</p>
+            <span className="text-xs text-foreground/50">
+              {RANGE_LABELS[preset]}
+            </span>
+          </div>
+          <div className="px-5 py-5">
+            {reportLoading && !report ? (
+              <div className="space-y-4">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="h-3.5 w-2/3 animate-pulse rounded bg-foreground/[0.07]" />
+                    <div className="h-1.5 animate-pulse rounded-full bg-foreground/[0.07]" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <TopProducts
+                data={report?.topProducts ?? []}
+                formatCurrency={formatCurrency}
+                emptyMessage={`Nothing sold ${RANGE_LABELS[preset].toLowerCase()}`}
+              />
+            )}
+          </div>
+        </section>
       </div>
 
       <Table
@@ -180,7 +336,9 @@ export default function SellManagementPage() {
         empty={{
           icon: <ShoppingCart className="h-6 w-6 text-foreground/40" />,
           title: "No orders yet",
-          message: "Orders placed at the POS will appear here.",
+          message: `No transactions ${RANGE_LABELS[
+            preset
+          ].toLowerCase()}. Try a wider period.`,
         }}
         pagination={{
           page,
@@ -265,7 +423,7 @@ export default function SellManagementPage() {
               <div>
                 <p className="text-foreground/50">Payment</p>
                 <p className="font-medium capitalize text-foreground">
-                  {PAYMENT_LABELS[detail.paymentMethod]} ·{" "}
+                  {PAYMENT_LABELS[detail.paymentMethod]} ·{""}{" "}
                   {formatCurrency(detail.amountPaid)}
                 </p>
               </div>

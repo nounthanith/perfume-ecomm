@@ -24,6 +24,29 @@ interface OrderItemInput {
   quantity?: unknown;
 }
 
+type DateFilter = { value: Record<string, unknown>; error?: undefined } | { value?: undefined; error: string };
+
+/** Builds an inclusive-exclusive createdAt window from optional ISO dates. */
+function dateFilter(from: string | null, to: string | null): DateFilter {
+  if (!from && !to) return { value: {} };
+
+  const parse = (value: string) => {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const start = from ? parse(from) : null;
+  const end = to ? parse(to) : null;
+
+  if (from && !start) return { error: "from must be a valid ISO date" };
+  if (to && !end) return { error: "to must be a valid ISO date" };
+  if (start && end && start >= end) {
+    return { error: "from must be earlier than to" };
+  }
+
+  return { value: { createdAt: { $gte: start ?? undefined, $lt: end ?? undefined } } };
+}
+
 export async function GET(req: NextRequest) {
   const session = await requireRole("admin", "cashier");
   if (!session) return forbidden();
@@ -31,12 +54,18 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const page = searchParams.get("page");
 
+  const filter = dateFilter(searchParams.get("from"), searchParams.get("to"));
+  if ("error" in filter) {
+    return NextResponse.json({ error: filter.error }, { status: 400 });
+  }
+
   await connectDB();
 
   if (page) {
     const result = await paginateAll(Order, {
       page: parseInt(page, 10) || 1,
       limit: parseInt(searchParams.get("limit") ?? "10", 10),
+      filter: filter.value,
       populate: [{ path: "cashier", select: "name email" }],
     });
     return NextResponse.json({
@@ -45,7 +74,7 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const orders = await Order.find()
+  const orders = await Order.find(filter.value)
     .populate("cashier", "name email")
     .sort({ createdAt: -1 })
     .lean();
