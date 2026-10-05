@@ -30,6 +30,7 @@ export default async function EditProductPage({ params }: Props) {
         ? (product.category as { _id?: unknown })._id
         : product.category
     ),
+    isFeature: product.isFeature ?? false,
   };
 
   return (

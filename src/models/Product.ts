@@ -9,6 +9,7 @@ const ProductSchema = new Schema<IProductDocument>(
     slug: { type: String, required: true, unique: true, lowercase: true },
     description: { type: String, default: "" },
     price: { type: Number, required: true, min: 0 },
+    isFeature: { type: Boolean, default: false },
     category: {
       type: Schema.Types.ObjectId,
       ref: "Category",

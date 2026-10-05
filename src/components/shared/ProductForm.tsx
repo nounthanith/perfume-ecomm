@@ -18,6 +18,7 @@ export interface ProductFormData {
   stock: number;
   images: string[];
   category: string;
+  isFeature: boolean;
 }
 
 interface ProductFormProps {
@@ -60,6 +61,7 @@ export default function ProductForm({
       stock: 0,
       category: "",
       images: [],
+      isFeature: false,
     }
   );
 
@@ -92,6 +94,11 @@ export default function ProductForm({
       setForm((prev) => ({
         ...prev,
         [name]: value === "" ? 0 : Number(value),
+      }));
+    } else if (name === "isFeature") {
+      setForm((prev) => ({
+        ...prev,
+        isFeature: (e.target as HTMLInputElement).checked,
       }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
@@ -132,6 +139,7 @@ export default function ProductForm({
         stock: form.stock,
         category: form.category,
         images: form.images,
+        isFeature: form.isFeature,
       };
 
       const res = await fetch(isEdit ? `/api/products/${productId}` : "/api/products", {
@@ -248,6 +256,19 @@ export default function ProductForm({
           ))}
         </select>
       </div>
+
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          name="isFeature"
+          checked={form.isFeature}
+          onChange={handleChange}
+          className="h-4 w-4 rounded border-foreground/20 accent-foreground"
+        />
+        <span className="text-sm font-medium text-foreground">
+          Featured product
+        </span>
+      </label>
 
       <div>
         <p className="mb-1 block text-sm font-medium text-foreground">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Package, Plus, Pencil, Trash2, PackageX } from "lucide-react";
+import { Package, Plus, Pencil, Trash2, PackageX, Star } from "lucide-react";
 import Button from "@/components/ui/button";
 import Dialog from "@/components/ui/dialog";
 import Table, { type TableColumn } from "@/components/ui/table";
@@ -26,6 +26,7 @@ interface Product {
   stock: number;
   images: string[];
   category: ProductCategory | string;
+  isFeature: boolean;
   createdAt?: string;
 }
 
@@ -63,11 +64,16 @@ function stockBadge(stock: number) {
 
 export default function ProductManagement() {
   const [page, setPage] = useState(1);
+  const [filterFeatured, setFilterFeatured] = useState(false);
 
   const { data, loading, error, refetch } = useFetch<FetchResult>(
     "/api/products",
     {
-      params: { page, limit: PAGE_SIZE },
+      params: {
+        page,
+        limit: PAGE_SIZE,
+        isFeature: filterFeatured ? true : undefined,
+      },
     }
   );
 
@@ -136,8 +142,14 @@ export default function ProductManagement() {
             </div>
           )}
           <div className="min-w-0">
-            <p className="max-w-55 truncate font-medium text-foreground">
-              {product.name}
+            <p className="flex items-center gap-1.5 text-[15px] font-medium text-foreground">
+              <span className="max-w-55 truncate">{product.name}</span>
+              {product.isFeature && (
+                <Star
+                  className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400"
+                  aria-label="Featured"
+                />
+              )}
             </p>
             <p className="max-w-55 truncate text-xs text-foreground/50">
               {product.slug}
@@ -226,19 +238,35 @@ export default function ProductManagement() {
             </p>
           </div>
         </div>
-        <Link href="/product-management/create">
-          <Button size="md" className="gap-1.5">
-            <Plus className="h-4 w-4" />
-            Create Product
+        <div className="flex items-center gap-2">
+          <Button
+            size="md"
+            variant={filterFeatured ? "primary" : "outline"}
+            onClick={() => {
+              setFilterFeatured((prev) => !prev);
+              setPage(1);
+            }}
+            aria-pressed={filterFeatured}
+            className="gap-1.5"
+          >
+            <Star className="h-4 w-4" />
+            Featured
           </Button>
-        </Link>
+
+          <Link href="/product-management/create">
+            <Button size="md" className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              Create Product
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Table
         columns={columns}
         data={products}
         getRowKey={(product) => product._id}
-        title="All Products"
+        title={filterFeatured ? "Featured Products" : "All Products"}
         count={totalItems}
         loading={loading}
         skeletonRows={6}
@@ -246,8 +274,10 @@ export default function ProductManagement() {
         onRetry={() => refetch()}
         empty={{
           icon: <PackageX className="h-6 w-6 text-foreground/40" />,
-          title: "No products yet",
-          message: "Create your first product to get started.",
+          title: filterFeatured ? "No featured products" : "No products yet",
+          message: filterFeatured
+            ? "Mark a product as featured to show it here."
+            : "Create your first product to get started.",
           action: (
             <Link href="/product-management/create">
               <Button size="sm" variant="outline" className="gap-1.5">

@@ -12,6 +12,10 @@ function toSlug(name: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function toBool(value: unknown): boolean {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
 export async function GET(req: NextRequest) {
   await connectDB();
 
@@ -20,6 +24,7 @@ export async function GET(req: NextRequest) {
   const limit = searchParams.get("limit");
   const search = searchParams.get("search");
   const categorySlug = searchParams.get("category");
+  const isFeature = searchParams.get("isFeature");
 
   const filter: Record<string, unknown> = {};
   if (search) {
@@ -30,6 +35,9 @@ export async function GET(req: NextRequest) {
       .select("_id")
       .lean();
     filter.category = category ? category._id : null;
+  }
+  if (isFeature !== null) {
+    filter.isFeature = toBool(isFeature);
   }
 
   if (page) {
@@ -57,7 +65,7 @@ export async function POST(req: NextRequest) {
   if (!session) return forbidden();
 
   try {
-    const { name, description, price, category, images, stock } =
+    const { name, description, price, category, images, stock, isFeature } =
       await req.json();
 
     if (!name || price === undefined || !category) {
@@ -87,6 +95,7 @@ export async function POST(req: NextRequest) {
       category,
       images: images || [],
       stock: stock || 0,
+      isFeature: toBool(isFeature),
     });
 
     return NextResponse.json({ product }, { status: 201 });

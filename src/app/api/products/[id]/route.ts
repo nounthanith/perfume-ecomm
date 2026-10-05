@@ -15,6 +15,10 @@ function toSlug(name: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function toBool(value: unknown): boolean {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
 export async function GET(_req: NextRequest, ctx: RouteContext) {
   const { id } = await ctx.params;
 
@@ -38,6 +42,7 @@ export async function GET(_req: NextRequest, ctx: RouteContext) {
       stock: product.stock,
       images: product.images ?? [],
       category: product.category,
+      isFeature: product.isFeature ?? false,
     },
   });
 }
@@ -49,7 +54,7 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
   const { id } = await ctx.params;
 
   try {
-    const { name, description, price, category, images, stock } =
+    const { name, description, price, category, images, stock, isFeature } =
       await req.json();
 
     if (!name || price === undefined || !category) {
@@ -85,6 +90,7 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
         category,
         images: images || [],
         stock: stock ?? 0,
+        isFeature: toBool(isFeature),
       },
       { new: true }
     ).populate("category", "name slug");

@@ -6,6 +6,7 @@ export interface IProduct {
   price: number;
   category: string;
   images: string[];
+  isFeature: boolean;
   stock: number;
   createdAt?: Date;
   updatedAt?: Date;
