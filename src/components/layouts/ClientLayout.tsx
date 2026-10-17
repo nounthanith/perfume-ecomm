@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { Gem, Menu, X } from "lucide-react";
 import ButtonLogout from "../providers/ButtonLogout";
 import ThemeToggle from "./ThemeToggle";
+import SettingSite from "@/components/shared/SettingSite";
 
 export default function ClientLayout() {
   const { status } = useSession();
@@ -29,6 +30,8 @@ export default function ClientLayout() {
 
   return (
     <nav className="sticky top-0 z-40 border-b border-foreground/10 bg-background/75 backdrop-blur-md">
+      <SettingSite />
+
       <div className="mx-auto flex max-w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"
