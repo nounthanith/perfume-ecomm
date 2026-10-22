@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Check,
+  DollarSign,
   LayoutDashboard,
   Package,
   Store,
@@ -30,6 +31,8 @@ interface DashboardResponse {
   stats: {
     users: number;
     products: number;
+    categories: number;
+    orders: number;
   };
 }
 
@@ -210,7 +213,7 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Stats */}
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-4">
             <Link href={"/user-management"}>
               <StatCard
                 label="Total Users"
@@ -224,11 +227,17 @@ export default function DashboardPage() {
                 icon={Package}
               />
             </Link>
+            <Link href={"/category-management"}>
+              <StatCard label="Category" value={(data?.stats.categories ?? 0).toLocaleString()} icon={Store} />
+            </Link>
+            <Link href={"/sell-management"}>
+              <StatCard label="Today Sell" value={(data?.stats.orders ?? 0).toLocaleString()} icon={DollarSign} />
+            </Link>
           </div>
 
           {/* Shop controls */}
           <section className="overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-sm">
-            <div className="flex items-center justify-between border-b border-foreground/10 bg-foreground/[0.02] px-5 py-3.5">
+            <div className="flex items-center justify-between border-b border-foreground/10 bg-foreground/2 px-5 py-3.5">
               <p className="text-sm font-medium text-foreground/80">
                 Shop Settings
               </p>

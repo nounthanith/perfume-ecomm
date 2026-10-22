@@ -55,7 +55,7 @@ export async function GET() {
     // Read-only: the singleton is created lazily on the first PATCH
     const setting = await Setting.findOne({ key: SETTING_KEY }).lean<SettingDoc>();
 
-    const [users, products, category, order] = await Promise.all([
+    const [users, products, categories, orders] = await Promise.all([
       User.countDocuments(),
       Product.countDocuments(),
       Category.countDocuments(),
@@ -70,7 +70,7 @@ export async function GET() {
 
     return NextResponse.json({
       setting: toSettingPayload(setting),
-      stats: { users, products, category, order },
+      stats: { users, products, categories, orders },
     });
   } catch (error) {
     console.error("GET /api/setting failed:", error);
