@@ -92,12 +92,12 @@ export default function Table<T>({
 
   if (loading && data.length === 0) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-foreground/10 bg-background">
+      <div className="overflow-hidden rounded-sm border border-foreground/10 bg-background">
         <div className="animate-pulse border-b border-foreground/10 px-5 py-4">
           <div className="h-4 w-32 rounded bg-foreground/10" />
         </div>
         <table className="w-full text-left text-sm">
-          <tbody className="divide-y divide-foreground/[0.06]">
+          <tbody className="divide-y divide-foreground/6">
             <SkeletonRows rows={skeletonRows} />
           </tbody>
         </table>
@@ -107,7 +107,7 @@ export default function Table<T>({
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-foreground/15 py-20 text-center">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-sm border border-dashed border-foreground/15 py-20 text-center">
         {empty?.icon && (
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground/5">
             {empty.icon}
@@ -125,9 +125,9 @@ export default function Table<T>({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-sm">
+    <div className="overflow-hidden rounded-sm border border-foreground/10 bg-background shadow-sm">
       {/* Table toolbar */}
-      <div className="flex items-center justify-between border-b border-foreground/10 bg-foreground/[0.02] px-5 py-3.5">
+      <div className="flex items-center justify-between border-b border-foreground/10 bg-foreground/2 px-5 py-3.5">
         <p className="text-sm font-medium text-foreground/80">{title}</p>
         {count !== undefined && (
           <span className="rounded-full border border-foreground/10 bg-foreground/5 px-2.5 py-0.5 text-xs text-foreground/60">
@@ -152,11 +152,11 @@ export default function Table<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-foreground/[0.06]">
+          <tbody className="divide-y divide-foreground/6">
             {data.map((item) => (
               <tr
                 key={getRowKey(item)}
-                className="transition-colors hover:bg-foreground/[0.03]"
+                className="transition-colors hover:bg-foreground/3"
               >
                 {columns.map((column) => (
                   <td
