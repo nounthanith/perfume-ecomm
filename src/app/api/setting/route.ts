@@ -4,6 +4,8 @@ import { forbidden, requireRole } from "@/lib/guard";
 import Product from "@/models/Product";
 import Setting, { SETTING_KEY } from "@/models/Setting";
 import User from "@/models/User";
+import Category from "@/models/Category";
+import Order from "@/models/Order";
 
 export const dynamic = "force-dynamic";
 
@@ -42,17 +44,33 @@ export async function GET() {
   try {
     await connectDB();
 
+    // count for today
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    // 2. Get the end of today (23:59:59.999)
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
     // Read-only: the singleton is created lazily on the first PATCH
     const setting = await Setting.findOne({ key: SETTING_KEY }).lean<SettingDoc>();
 
-    const [users, products] = await Promise.all([
+    const [users, products, category, order] = await Promise.all([
       User.countDocuments(),
       Product.countDocuments(),
+      Category.countDocuments(),
+      //count for today
+      Order.countDocuments({
+        createdAt: {
+          $gte: startOfDay,
+          $lte: endOfDay
+        }
+      })
     ]);
 
     return NextResponse.json({
       setting: toSettingPayload(setting),
-      stats: { users, products },
+      stats: { users, products, category, order },
     });
   } catch (error) {
     console.error("GET /api/setting failed:", error);
