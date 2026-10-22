@@ -72,16 +72,17 @@ export default function PosHeader({ name, role }: PosHeaderProps) {
         {role === "admin" && (
           <Link
             href="/dashboard"
-            className="hidden items-center gap-2 rounded-lg border border-foreground/10 px-3 py-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground md:inline-flex"
+            title="Dashboard"
+            className="flex items-center gap-2 rounded-lg border border-foreground/10 px-2.5 py-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground md:px-3"
           >
             <LayoutDashboard className="h-4 w-4" />
-            Dashboard
+            <span className="hidden md:inline">Dashboard</span>
           </Link>
         )}
 
-        <div className="hidden items-center gap-2.5 rounded-full border border-foreground/10 bg-foreground/[0.03] py-1 pl-1 pr-3 md:flex">
+        <div className="hidden items-center gap-2.5 rounded-full border border-foreground/10 bg-foreground/3 py-1 pl-1 pr-3 md:flex">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
-            {initial}
+            {initial}q
           </div>
           <div className="leading-tight">
             <p className="text-xs font-medium text-foreground">
