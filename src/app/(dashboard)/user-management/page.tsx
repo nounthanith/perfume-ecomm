@@ -162,8 +162,6 @@ export default function UserManagementPage() {
     {
       key: "provider",
       header: "Provider",
-      headerClassName: "hidden md:table-cell",
-      className: "hidden md:table-cell",
       render: (user) => (
         <span className="inline-flex items-center gap-1.5 text-sm text-foreground/70">
           <span
@@ -178,8 +176,6 @@ export default function UserManagementPage() {
     {
       key: "verified",
       header: "Verified",
-      headerClassName: "hidden md:table-cell",
-      className: "hidden md:table-cell",
       render: (user) => (
         <span
           className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -195,8 +191,6 @@ export default function UserManagementPage() {
     {
       key: "joined",
       header: "Joined",
-      headerClassName: "hidden lg:table-cell",
-      className: "hidden lg:table-cell",
       render: (user) => (
         <span className="text-sm text-foreground/60">
           {formatDate(user.createdAt)}
