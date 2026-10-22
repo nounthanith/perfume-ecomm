@@ -14,6 +14,7 @@ import Input from "@/components/ui/input";
 import Skeleton from "@/components/ui/skeleton";
 import StatCard from "@/components/shared/StatCard";
 import { useFetch } from "@/hooks/useFetch";
+import UserManagementPage from "../user-management/page";
 
 const MAX_MESSAGE = 200;
 
@@ -46,20 +47,18 @@ function formatDateTime(value?: string | null) {
 function StatusBadge({ open }: { open: boolean }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-        open
-          ? "bg-emerald-500/10 text-emerald-600"
-          : "bg-red-500/10 text-red-600"
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${open
+        ? "bg-emerald-500/10 text-emerald-600"
+        : "bg-red-500/10 text-red-600"
+        }`}
     >
       <span className="relative flex h-1.5 w-1.5">
         {open && (
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
         )}
         <span
-          className={`relative inline-flex h-1.5 w-1.5 rounded-full ${
-            open ? "bg-emerald-500" : "bg-red-500"
-          }`}
+          className={`relative inline-flex h-1.5 w-1.5 rounded-full ${open ? "bg-emerald-500" : "bg-red-500"
+            }`}
         />
       </span>
       {open ? "Open" : "Closed"}
@@ -84,14 +83,12 @@ function StatusToggle({
       aria-label="Shop open status"
       disabled={disabled}
       onClick={onToggle}
-      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-        checked ? "bg-emerald-500" : "bg-foreground/20"
-      }`}
+      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${checked ? "bg-emerald-500" : "bg-foreground/20"
+        }`}
     >
       <span
-        className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-          checked ? "translate-x-5" : "translate-x-0"
-        }`}
+        className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0"
+          }`}
       />
     </button>
   );
@@ -214,16 +211,19 @@ export default function DashboardPage() {
         <>
           {/* Stats */}
           <div className="grid gap-4 sm:grid-cols-2">
-            <StatCard
-              label="Total Users"
-              value={(data?.stats.users ?? 0).toLocaleString()}
-              icon={Users}
-            />
-            <StatCard
-              label="Total Products"
-              value={(data?.stats.products ?? 0).toLocaleString()}
-              icon={Package}
-            />
+            <Link href={"/user-management"}>
+              <StatCard
+                label="Total Users"
+                value={(data?.stats.users ?? 0).toLocaleString()}
+                icon={Users}
+              /></Link>
+            <Link href={"/product-management"}>
+              <StatCard
+                label="Total Products"
+                value={(data?.stats.products ?? 0).toLocaleString()}
+                icon={Package}
+              />
+            </Link>
           </div>
 
           {/* Shop controls */}
@@ -277,9 +277,8 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 text-xs tabular-nums ${
-                    remaining < 0 ? "text-red-600" : "text-foreground/50"
-                  }`}
+                  className={`shrink-0 text-xs tabular-nums ${remaining < 0 ? "text-red-600" : "text-foreground/50"
+                    }`}
                 >
                   {message.length}/{MAX_MESSAGE}
                 </span>
