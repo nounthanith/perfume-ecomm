@@ -31,18 +31,36 @@ export default function SplashScreen() {
     const hold = reduceMotion ? 350 : HOLD_MS;
     const fade = reduceMotion ? 0 : FADE_MS;
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
     const leaveTimer = window.setTimeout(() => setLeaving(true), hold);
     const hideTimer = window.setTimeout(() => setHidden(true), hold + fade);
 
     return () => {
       window.clearTimeout(leaveTimer);
       window.clearTimeout(hideTimer);
-      document.body.style.overflow = previousOverflow;
     };
   }, []);
+
+  // Lock page scrolling only while the overlay is on screen. This is a
+  // separate effect because rendering `null` when the splash finishes does
+  // NOT unmount the component, so a cleanup inside the timer effect would
+  // never run and the page would stay stuck unable to scroll.
+  useEffect(() => {
+    if (hidden) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    if (document.documentElement.classList.contains("splash-skipped")) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [hidden]);
 
   if (hidden) return null;
 
