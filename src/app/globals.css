@@ -22,6 +22,16 @@
   --animate-splash-rise: splash-rise 0.7s ease-out both;
   --animate-splash-ring: splash-ring 1.8s ease-out both;
   --animate-splash-track: splash-track 1.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  --animate-skeleton-shimmer: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* Returning visitors: the inline head script marks <html> before paint. */

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ProductCart, { type ProductCardData } from "@/components/shared/ProductCart";
 import CategoryFilter, { CategoryOption } from "@/components/shared/CategoryFilter";
 import Pagination from "@/components/ui/pagination";
-import Skeleton from "@/components/ui/skeleton";
+import ProductGridSkeleton from "@/components/shared/ProductGridSkeleton";
 import { useFetch } from "@/hooks/useFetch";
 
 const PAGE_SIZE = 8;
@@ -25,34 +25,6 @@ interface FetchResult {
 
 interface CategoriesResult {
   categories: CategoryOption[];
-}
-
-function ProductCardSkeleton() {
-  return (
-    <div className="overflow-hidden rounded-none border border-foreground/10">
-      <Skeleton className="aspect-square w-full" />
-      <div className="space-y-3 p-4">
-        <div className="space-y-1">
-          <Skeleton className="h-3 w-16" />
-          <Skeleton className="h-4 w-3/4" />
-        </div>
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-5 w-14" />
-          <Skeleton className="h-4 w-20" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ProductGridSkeleton() {
-  return (
-    <div className="grid grid-cols-2 gap-1 sm:grid-cols-2 lg:grid-cols-4">
-      {Array.from({ length: PAGE_SIZE }, (_, i) => (
-        <ProductCardSkeleton key={i} />
-      ))}
-    </div>
-  );
 }
 
 function HomeContent() {
