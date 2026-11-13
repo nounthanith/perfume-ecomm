@@ -88,6 +88,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             __html: `(function(){try{var t=localStorage.getItem("perfume-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`,
           }}
         />
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(sessionStorage.getItem("g-fragrance-splash-seen")){document.documentElement.classList.add("splash-skipped")}}catch(e){}})();`,
+          }}
+        />
       </head>
       <link rel="icon" href="/logo.png" />
       <body className="min-h-full flex flex-col">

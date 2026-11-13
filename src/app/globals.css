@@ -17,6 +17,70 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --animate-splash-logo: splash-logo 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-splash-rise: splash-rise 0.7s ease-out both;
+  --animate-splash-ring: splash-ring 1.8s ease-out both;
+  --animate-splash-track: splash-track 1.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Returning visitors: the inline head script marks <html> before paint. */
+html.splash-skipped .app-splash {
+  display: none;
+}
+
+@keyframes splash-logo {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes splash-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes splash-ring {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+@keyframes splash-track {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-splash,
+  .app-splash * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 body {
