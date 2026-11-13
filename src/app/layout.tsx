@@ -81,6 +81,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
+        <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "1132e014c872484aa2cdffd9604bf676"}'></script>
         <script
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
