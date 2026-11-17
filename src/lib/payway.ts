@@ -364,7 +364,8 @@ export async function checkTransaction(
       ok,
       approved: Boolean(
         data &&
-          (data.payment_status_code === 0 || data.payment_status === "APPROVED")
+          (data.payment_status?.toUpperCase() === "APPROVED" ||
+            (data.payment_status_code === 0 && !data.payment_status))
       ),
       paymentStatus: data?.payment_status ?? "UNKNOWN",
       paymentStatusCode: data?.payment_status_code ?? null,

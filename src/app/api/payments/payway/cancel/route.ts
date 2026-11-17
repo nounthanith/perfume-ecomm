@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { findPaywayOrder, markPaymentFailed } from "@/lib/payway-order";
+import {
+  findPaywayOrder,
+  markPaymentFailed,
+  reconcilePaywayPaymentDetailed,
+} from "@/lib/payway-order";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +30,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  const updated = await markPaymentFailed(order, "cancelled", "CANCELLED");
+  // The customer can reach the cancel page after paying (slow callback, back
+  // button, etc.). Ask PayWay first so a real payment is never cancelled.
+  const { order: reconciled } = await reconcilePaywayPaymentDetailed(order);
+
+  const updated =
+    reconciled.status === "pending"
+      ? await markPaymentFailed(reconciled, "cancelled", "CANCELLED")
+      : reconciled;
+
   return NextResponse.json({ status: updated.status });
 }

@@ -20,7 +20,7 @@ import {
   getSalesRange,
   type RangePreset,
 } from "@/lib/sales-range";
-import type { IOrder, PaymentMethod } from "@/types/order.type";
+import type { IOrder, OrderStatus, PaymentMethod } from "@/types/order.type";
 import type { SalesReport } from "@/types/sales.type";
 
 const PAGE_SIZE = 10;
@@ -51,6 +51,22 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   card: "Card",
   transfer: "Transfer",
   payway: "ABA PayWay",
+};
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: "Pending",
+  paid: "Paid",
+  failed: "Failed",
+  cancelled: "Cancelled",
+  refunded: "Refunded",
+};
+
+const STATUS_TONES: Record<OrderStatus, string> = {
+  pending: "bg-amber-400",
+  paid: "bg-emerald-400",
+  failed: "bg-red-400",
+  cancelled: "bg-foreground/30",
+  refunded: "bg-sky-400",
 };
 
 function formatDate(value?: Date | string) {
@@ -169,6 +185,16 @@ export default function SellManagementPage() {
             }`}
           />
           {PAYMENT_LABELS[order.paymentMethod]}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (order) => (
+        <span className="inline-flex items-center gap-1.5 text-sm text-foreground/70">
+          <span className={`h-1.5 w-1.5 rounded-full ${STATUS_TONES[order.status]}`} />
+          {STATUS_LABELS[order.status] ?? order.status}
         </span>
       ),
     },
@@ -432,6 +458,17 @@ export default function SellManagementPage() {
                 <p className="text-foreground/50">Cashier</p>
                 <p className="font-medium text-foreground">
                   {detail.cashier?.name || "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-foreground/50">Status</p>
+                <p className="font-medium text-foreground">
+                  {STATUS_LABELS[detail.status] ?? detail.status}
+                  {detail.paymentStatus && (
+                    <span className="ml-1 text-foreground/50">
+                      ({detail.paymentStatus})
+                    </span>
+                  )}
                 </p>
               </div>
             </div>

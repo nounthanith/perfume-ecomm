@@ -10,6 +10,16 @@ import type { OrderStatus } from "@/types/order.type";
  * can be the first to observe the result.
  */
 
+export interface ReconcileOutcome {
+  order: IOrderDocument;
+  /**
+   * True only when PayWay actually answered check-transaction. A callback must
+   * not fall back to its own payload when PayWay explicitly said "PENDING".
+   */
+  checked: boolean;
+  result?: PaywayTransactionStatus;
+}
+
 export async function confirmPaid(
   order: IOrderDocument,
   result?: PaywayTransactionStatus
@@ -28,7 +38,7 @@ export async function confirmPaid(
 
 export async function markPaymentFailed(
   order: IOrderDocument,
-  nextStatus: Extract<OrderStatus, "failed" | "cancelled">,
+  nextStatus: Extract<OrderStatus, "failed" | "cancelled" | "refunded">,
   paymentStatus = ""
 ): Promise<IOrderDocument> {
   if (order.status !== "pending") return order;
@@ -47,31 +57,85 @@ export async function markPaymentFailed(
   return order;
 }
 
-/** Checks PayWay's API and applies the result; safe to call repeatedly. */
-export async function reconcilePaywayPayment(
+/**
+ * Checks PayWay's API and applies the result; safe to call repeatedly.
+ * `checked` tells the caller whether the authoritative API answered, which is
+ * needed to decide if an unverified callback payload may be used as fallback.
+ */
+export async function reconcilePaywayPaymentDetailed(
   order: IOrderDocument
-): Promise<IOrderDocument> {
-  if (order.status !== "pending" || !order.paywayTranId) return order;
+): Promise<ReconcileOutcome> {
+  if (order.status !== "pending" || !order.paywayTranId) {
+    return { order, checked: false };
+  }
 
   const result = await checkTransaction(order.paywayTranId);
-  if (!result.ok) return order;
+  if (!result.ok) {
+    console.warn(
+      `PayWay check unavailable for ${order.orderNumber}: code=${String(result.code)} ${result.message}`
+    );
+    return { order, checked: false, result };
+  }
 
-  if (result.approved) {
+  const paymentStatus = (result.paymentStatus || "").toUpperCase();
+  const code = result.paymentStatusCode;
+
+  // PayWay uses 0 for APPROVED *and* PRE-AUTH. Only a completed APPROVED
+  // payment may become a paid order; PRE-AUTH/PENDING must stay pending.
+  const approved =
+    paymentStatus === "APPROVED" ||
+    (code === 0 && (paymentStatus === "" || paymentStatus === "UNKNOWN"));
+
+  if (approved) {
     const paidAmount = result.amount ?? 0;
-    if (Math.abs(paidAmount - order.total) > 0.01) {
+    if (paidAmount <= 0 || Math.abs(paidAmount - order.total) > 0.01) {
       console.error(
         `PayWay amount mismatch for ${order.orderNumber}: expected ${order.total}, got ${paidAmount}`
       );
-      return order;
+      return {
+        order: await markPaymentFailed(order, "failed", "AMOUNT_MISMATCH"),
+        checked: true,
+        result,
+      };
     }
-    return confirmPaid(order, result);
+    return {
+      order: await confirmPaid(order, { ...result, paymentStatus: "APPROVED" }),
+      checked: true,
+      result,
+    };
   }
 
-  if ([3, 4, 7].includes(result.paymentStatusCode ?? -1)) {
-    return markPaymentFailed(order, "failed", result.paymentStatus);
+  const failedByCode = [3, 4, 7].includes(code ?? -1);
+  const failedByStatus = ["DECLINED", "CANCELLED", "REFUNDED"].includes(
+    paymentStatus
+  );
+
+  if (failedByCode || failedByStatus) {
+    let nextStatus: Extract<OrderStatus, "failed" | "cancelled" | "refunded"> =
+      "failed";
+    if (paymentStatus === "CANCELLED" || code === 7) nextStatus = "cancelled";
+    if (paymentStatus === "REFUNDED" || code === 4) nextStatus = "refunded";
+
+    return {
+      order: await markPaymentFailed(
+        order,
+        nextStatus,
+        result.paymentStatus || "UNSUCCESSFUL"
+      ),
+      checked: true,
+      result,
+    };
   }
 
-  return order;
+  // PENDING / PRE-AUTH / anything ambiguous stays pending.
+  return { order, checked: true, result };
+}
+
+/** Backwards-compatible wrapper for callers that only need the order. */
+export async function reconcilePaywayPayment(
+  order: IOrderDocument
+): Promise<IOrderDocument> {
+  return (await reconcilePaywayPaymentDetailed(order)).order;
 }
 
 export async function findPaywayOrder(

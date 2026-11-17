@@ -89,20 +89,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           data-cf-beacon='{"token": "1132e014c872484aa2cdffd9604bf676"}'
           strategy="afterInteractive"
         />
-        <Script
-          id="theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("perfume-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`,
-          }}
-        />
-        <Script
-          id="splash-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{if(sessionStorage.getItem("g-fragrance-splash-seen")){document.documentElement.classList.add("splash-skipped")}}catch(e){}})();`,
-          }}
-        />
+        {/* React 19 hoists external async scripts into <head> and runs them
+            before hydration without creating a React-managed <script> node. */}
+        <script src="/theme-init.js" async />
+        <script src="/splash-init.js" async />
       </head>
       <link rel="icon" href="/logo.png" />
       <body className="min-h-full flex flex-col">

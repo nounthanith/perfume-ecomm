@@ -65,7 +65,9 @@ export async function GET(req: NextRequest) {
     ? Math.min(840, Math.max(-840, Math.round(rawTz)))
     : 0;
 
-  const match = { createdAt: { $gte: from, $lt: to } };
+  // Pending/failed/cancelled PayWay orders are not sales — never count them
+  // as revenue, order volume, units or top products.
+  const match = { createdAt: { $gte: from, $lt: to }, status: "paid" };
   const bucketExpr = {
     $dateToString: {
       format: BUCKET_FORMATS[unit],

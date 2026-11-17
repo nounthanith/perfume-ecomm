@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { confirmPaid, markPaymentFailed, reconcilePaywayPayment } from "@/lib/payway-order";
+import {
+  confirmPaid,
+  markPaymentFailed,
+  reconcilePaywayPaymentDetailed,
+} from "@/lib/payway-order";
 import { verifyCallbackSignature } from "@/lib/payway";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
@@ -16,6 +20,7 @@ type CallbackBody = {
   apv?: string;
   payment_type?: string;
   bank_ref?: string;
+  payment_currency?: string;
 };
 
 /**
@@ -63,23 +68,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid return params" }, { status: 400 });
   }
 
-  const updated = await reconcilePaywayPayment(order);
+  const { order: updated, checked } = await reconcilePaywayPaymentDetailed(
+    order
+  );
 
-  // Fallback for environments where the callback arrives but the
-  // check-transaction API is temporarily unreachable. A valid HMAC makes the
-  // callback payload trustworthy enough to use.
-  if (updated.status === "pending" && signatureValid) {
+  // Fallback ONLY when PayWay's authoritative check could not be reached.
+  // If it answered "PENDING", the callback payload must never be allowed to
+  // turn a still-unpaid order into a paid one.
+  if (updated.status === "pending" && !checked && signatureValid) {
     const paidAmount = Number(
       body.payment_amount ?? body.total_amount ?? body.original_amount ?? 0
     );
     const amountMatches = Math.abs(paidAmount - updated.total) <= 0.01;
+    const currencyMatches =
+      !body.payment_currency || body.payment_currency.toUpperCase() === "USD";
 
-    if (String(body.status) === "0" && amountMatches) {
-      await confirmPaid(updated);
+    if (String(body.status) === "0" && amountMatches && currencyMatches) {
+      await confirmPaid(updated, {
+        ok: true,
+        approved: true,
+        paymentStatus: "APPROVED",
+        paymentStatusCode: 0,
+        amount: paidAmount,
+        currency: body.payment_currency || "USD",
+        apv: body.apv || "",
+        bankRef: body.bank_ref || "",
+        paymentType: body.payment_type || "",
+        code: "00",
+        message: "Verified via callback fallback",
+      });
     } else if (String(body.status) === "200" || String(body.status) === "201") {
       await markPaymentFailed(
         updated,
-        String(body.status) === "200" ? "cancelled" : "failed"
+        String(body.status) === "200" ? "cancelled" : "failed",
+        String(body.status) === "200" ? "CANCELLED" : "DECLINED"
       );
     }
   }
