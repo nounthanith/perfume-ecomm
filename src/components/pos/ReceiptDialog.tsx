@@ -8,6 +8,7 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   cash: "Cash",
   card: "Card",
   transfer: "Bank Transfer",
+  payway: "ABA PayWay",
 };
 
 interface ReceiptDialogProps {

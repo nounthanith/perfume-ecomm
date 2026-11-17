@@ -35,7 +35,10 @@ export default function ProductCart({
 
   const outOfStock = product.stock <= 0;
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // The card itself is a link — don't navigate when adding to cart.
+    e.preventDefault();
+    e.stopPropagation();
     addToCart({
       _id: product._id,
       name: product.name,
@@ -81,14 +84,14 @@ export default function ProductCart({
           </span>
         </div>
 
-        {/* <Button
+        <Button
           type="button"
           className="w-full"
           disabled={outOfStock}
           onClick={handleAdd}
         >
           {outOfStock ? "Sold Out" : added ? "Added ✓" : "Add to Cart"}
-        </Button> */}
+        </Button>
       </div>
     </Link>
   );

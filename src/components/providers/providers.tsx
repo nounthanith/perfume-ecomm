@@ -11,7 +11,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <SessionProvider>
         <CartProvider>
           {children}
-          {/* <CartDrawer /> */}
+          <CartDrawer />
         </CartProvider>
       </SessionProvider>
     </ThemeProvider>

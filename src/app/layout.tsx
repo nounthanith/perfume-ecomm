@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import Providers from "@/components/providers/providers";
 import "./globals.css";
 import OfflineBanner from "@/components/ui/offline-banner";
@@ -81,15 +82,23 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "1132e014c872484aa2cdffd9604bf676"}'></script>
-        <script
-          suppressHydrationWarning
+        <Script
+          id="cloudflare-insights"
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          type="module"
+          data-cf-beacon='{"token": "1132e014c872484aa2cdffd9604bf676"}'
+          strategy="afterInteractive"
+        />
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("perfume-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`,
           }}
         />
-        <script
-          suppressHydrationWarning
+        <Script
+          id="splash-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{if(sessionStorage.getItem("g-fragrance-splash-seen")){document.documentElement.classList.add("splash-skipped")}}catch(e){}})();`,
           }}

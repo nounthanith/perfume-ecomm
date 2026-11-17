@@ -50,6 +50,7 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   cash: "Cash",
   card: "Card",
   transfer: "Transfer",
+  payway: "ABA PayWay",
 };
 
 function formatDate(value?: Date | string) {

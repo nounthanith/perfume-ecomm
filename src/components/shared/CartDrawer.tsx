@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 
 export default function CartDrawer() {
+  const router = useRouter();
   const {
     items,
     isOpen,
@@ -162,7 +164,10 @@ export default function CartDrawer() {
                   <Button
                     type="button"
                     className="flex-1"
-                    onClick={() => window.alert("Checkout coming soon!")}
+                    onClick={() => {
+                      closeCart();
+                      router.push("/checkout");
+                    }}
                   >
                     Checkout
                   </Button>
