@@ -4,9 +4,12 @@ import Order from "@/models/Order";
 import Product from "@/models/Product";
 import { requireRole, forbidden } from "@/lib/guard";
 import { paginateAll } from "@/lib/crud";
+import { releaseReservedStock } from "@/lib/payway-order";
 import type { PaymentMethod } from "@/types/order.type";
 
 const VALID_PAYMENT_METHODS: PaymentMethod[] = ["cash", "card", "transfer"];
+
+class StockConflictError extends Error {}
 
 function generateOrderNumber() {
   const now = new Date();
@@ -84,6 +87,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await requireRole("admin", "cashier");
   if (!session) return forbidden();
+
+  let reservedStock: Array<{ product: string; quantity: number }> = [];
 
   try {
     const body = await req.json();
@@ -199,13 +204,11 @@ export async function POST(req: NextRequest) {
       );
 
       if (!updated) {
-        return NextResponse.json(
-          {
-            error: `"${item.name}" is no longer available in sufficient quantity`,
-          },
-          { status: 409 }
+        throw new StockConflictError(
+          `"${item.name}" is no longer available in sufficient quantity`
         );
       }
+      reservedStock.push(item);
     }
 
     const orderNumber = generateOrderNumber();
@@ -229,9 +232,18 @@ export async function POST(req: NextRequest) {
       cashier: session.user.id,
     });
 
+    // The completed order now owns the stock reduction.
+    reservedStock = [];
+
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
+    // Roll back reservations if the order could not be created.
+    await releaseReservedStock(reservedStock);
+
     console.error("Create order error:", error);
+    if (error instanceof StockConflictError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

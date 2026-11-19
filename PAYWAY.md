@@ -50,6 +50,7 @@ NEXT_PUBLIC_BASE_URL=https://your-deployed-domain.vercel.app
 | `src/app/api/payments/payway/callback/route.ts` | Public `return_url`; verifies signature and reconciles status with PayWay |
 | `src/app/api/payments/payway/status/route.ts` | Pollable order status; reconciles pending orders |
 | `src/app/api/payments/payway/cancel/route.ts` | Cancels an abandoned payment and releases stock |
+| `src/app/api/payments/payway/release-stale/route.ts` | Admin/cron cleanup of expired pending reservations |
 | `src/app/(site)/checkout/**` | Checkout, success and cancel pages |
 
 ## Sandbox test cards
@@ -65,9 +66,10 @@ NEXT_PUBLIC_BASE_URL=https://your-deployed-domain.vercel.app
 ## Notes / limitations
 
 - Prices remain in USD; the cart and PayWay both use USD, with no conversion.
-- Stock is reserved when the pending order is created and released when a payment is cancelled/declined. An order abandoned mid-payment keeps its reservation until the customer cancels (or the cancel page is reached).
+- Stock is reserved when the pending order is created and released when a payment is cancelled/declined. An order abandoned mid-payment keeps its reservation for 30 minutes; it is then released automatically on the next checkout or by calling `POST /api/payments/payway/release-stale` (admin session, or `Authorization: Bearer $CRON_SECRET`).
 - The callback route accepts unsigned callbacks only when PayWay confirms the transaction through `check-transaction-2`; a valid callback HMAC is used as a fallback when that API is unavailable.
-- The callback is idempotent: repeated notifications never double-apply stock changes or payment state.
+- The callback is idempotent: repeated notifications never double-apply stock changes or payment state. Order transitions are claimed atomically, so concurrent cancel/callback requests cannot restore the same stock twice.
+- Stale-reservation cleanup only releases when PayWay confirms the transaction is still pending (or does not exist). If the check API is unreachable, the reservation is left intact rather than risking cancellation of a real payment.
 - Only orders with status `paid` count toward sales reports. Pending, failed and cancelled PayWay orders remain visible in Sell Management (with their status) but do not inflate revenue/order counts.
 - A callback payload is used as a fallback only when PayWay's `check-transaction-2` API cannot be reached. If PayWay answers `PENDING` or `PRE-AUTH`, the order stays pending — a callback can never promote an unpaid order to paid.
 - `PRE-AUTH` is not treated as a completed payment. Only `APPROVED` with a matching USD amount confirms an order; declined/cancelled/refunded statuses release the reserved stock.

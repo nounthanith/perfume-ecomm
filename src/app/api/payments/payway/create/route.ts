@@ -12,6 +12,10 @@ import {
 } from "@/lib/payway";
 import Order, { type IOrderDocument } from "@/models/Order";
 import Product from "@/models/Product";
+import {
+  releaseReservedStock,
+  releaseStalePaywayReservations,
+} from "@/lib/payway-order";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +23,11 @@ interface OrderItemInput {
   product?: unknown;
   quantity?: unknown;
 }
+
+/** Stock for these items has been reserved and must be released if we bail out. */
+type ReservedItem = { product: string; quantity: number; name: string };
+
+class StockReservationError extends Error {}
 
 function round2(value: number) {
   return Math.round(value * 100) / 100;
@@ -30,6 +39,8 @@ function generateOrderNumber() {
 }
 
 export async function POST(req: Request) {
+  let reserved: ReservedItem[] = [];
+
   try {
     // Checkout is open to guests; logged-in customers are linked to the order.
     const session = await auth();
@@ -94,6 +105,9 @@ export async function POST(req: Request) {
 
     await connectDB();
 
+    // Free inventory held by abandoned PayWay sessions before checking stock.
+    await releaseStalePaywayReservations();
+
     const products = await Product.find({
       _id: { $in: parsedItems.map((item) => item.product) },
     }).lean();
@@ -151,7 +165,6 @@ export async function POST(req: Request) {
       customerEmail,
     });
 
-    const reserved: typeof lineItems = [];
     for (const item of lineItems) {
       const updated = await Product.findOneAndUpdate(
         { _id: item.product, stock: { $gte: item.quantity } },
@@ -159,16 +172,8 @@ export async function POST(req: Request) {
         { new: true }
       );
       if (!updated) {
-        // Release the stock reserved for earlier items before bailing out.
-        for (const previous of reserved) {
-          await Product.updateOne(
-            { _id: previous.product },
-            { $inc: { stock: previous.quantity } }
-          );
-        }
-        return NextResponse.json(
-          { error: `"${item.name}" is no longer available` },
-          { status: 409 }
+        throw new StockReservationError(
+          `"${item.name}" is no longer available`
         );
       }
       reserved.push(item);
@@ -200,6 +205,9 @@ export async function POST(req: Request) {
         : {}),
     });
 
+    // The pending order now owns the reservation.
+    reserved = [];
+
     return NextResponse.json(
       {
         orderId: order._id,
@@ -212,9 +220,16 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
+    // Release any stock reserved before the failure. Without this, a rejected
+    // checkout (or a failed Order.create) leaves stock permanently deducted.
+    await releaseReservedStock(reserved);
+
     console.error("Create PayWay payment error:", error);
     if (error instanceof PaywayConfigError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof StockReservationError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
     }
     return NextResponse.json(
       { error: "Internal server error" },

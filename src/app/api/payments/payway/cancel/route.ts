@@ -32,7 +32,13 @@ export async function POST(req: Request) {
 
   // The customer can reach the cancel page after paying (slow callback, back
   // button, etc.). Ask PayWay first so a real payment is never cancelled.
-  const { order: reconciled } = await reconcilePaywayPaymentDetailed(order);
+  let reconciled = order;
+  try {
+    reconciled = (await reconcilePaywayPaymentDetailed(order)).order;
+  } catch (error) {
+    // PayWay check failures must not prevent releasing an abandoned payment.
+    console.error("PayWay reconciliation failed during cancel:", error);
+  }
 
   const updated =
     reconciled.status === "pending"
