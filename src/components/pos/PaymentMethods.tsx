@@ -11,10 +11,10 @@ const METHODS: {
   label: string;
   icon: React.ElementType;
 }[] = [
-  { value: "cash", label: "Cash", icon: Banknote },
-  { value: "card", label: "Card", icon: CreditCard },
-  { value: "transfer", label: "Transfer", icon: Landmark },
-];
+    { value: "cash", label: "Cash", icon: Banknote },
+    { value: "card", label: "Card", icon: CreditCard },
+    { value: "transfer", label: "Transfer", icon: Landmark },
+  ];
 
 export default function PaymentMethods({ value, onChange }: PaymentMethodsProps) {
   return (
@@ -27,11 +27,10 @@ export default function PaymentMethods({ value, onChange }: PaymentMethodsProps)
             key={method.value}
             type="button"
             onClick={() => onChange(method.value)}
-            className={`relative flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3.5 text-[13px] font-semibold transition-all active:scale-[0.97] ${
-              active
+            className={`relative flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3.5 text-[13px] font-semibold transition-all active:scale-[0.97] ${active
                 ? "border-foreground bg-foreground text-background shadow-md"
                 : "border-foreground/10 bg-background text-foreground/70 hover:border-foreground/30 hover:text-foreground"
-            }`}
+              }`}
           >
             {active && (
               <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-background text-foreground">

@@ -23,14 +23,13 @@ export default function ProductCard({
       type="button"
       disabled={unavailable}
       onClick={() => onAdd(product)}
-      className={`group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl border bg-background p-3 text-left shadow-[0_1px_2px_rgba(13,27,42,0.04)] transition-all duration-150 active:scale-[0.98] sm:flex-col sm:items-stretch sm:gap-0 sm:p-0 ${
-        unavailable
+      className={`group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl border bg-background p-3 text-left shadow-[0_1px_2px_rgba(13,27,42,0.04)] transition-all duration-150 active:scale-[0.98] sm:flex-col sm:items-stretch sm:gap-0 sm:p-0 ${unavailable
           ? "cursor-not-allowed border-foreground/5 opacity-50"
-          : "border-foreground/10 active:bg-foreground/[0.04] sm:hover:-translate-y-0.5 sm:hover:border-foreground/25 sm:hover:shadow-lg sm:hover:shadow-foreground/5"
-      }`}
+          : "border-foreground/10 active:bg-foreground/4 sm:hover:-translate-y-0.5 sm:hover:border-foreground/25 sm:hover:shadow-lg sm:hover:shadow-foreground/5"
+        }`}
     >
       {/* Image */}
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-foreground/[0.04] sm:h-auto sm:w-full sm:aspect-square sm:rounded-none">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-foreground/4 sm:h-auto sm:w-full sm:aspect-square sm:rounded-none">
         {product.images[0] ? (
           <Image
             src={product.images[0]}
@@ -75,13 +74,12 @@ export default function ProductCard({
 
         {/* Desktop stock pill */}
         <span
-          className={`mt-1 hidden w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold sm:mt-auto sm:flex sm:px-2.5 ${
-            out
+          className={`mt-1 hidden w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold sm:mt-auto sm:flex sm:px-2.5 ${out
               ? "bg-red-500/10 text-red-600"
               : low
                 ? "bg-amber-500/15 text-amber-600"
                 : "bg-foreground/5 text-foreground/50"
-          }`}
+            }`}
         >
           {out ? "Out of stock" : low ? `${product.stock} left` : "In stock"}
         </span>
