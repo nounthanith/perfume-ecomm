@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isValidObjectId } from "mongoose";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import Category from "@/models/Category";
@@ -25,8 +26,17 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get("search");
   const categorySlug = searchParams.get("category");
   const isFeature = searchParams.get("isFeature");
+  const ids = searchParams.get("ids");
 
   const filter: Record<string, unknown> = {};
+  if (ids) {
+    filter._id = {
+      $in: ids
+        .split(",")
+        .map((id) => id.trim())
+        .filter(isValidObjectId),
+    };
+  }
   if (search) {
     filter.name = { $regex: search, $options: "i" };
   }

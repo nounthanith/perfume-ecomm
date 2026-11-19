@@ -27,23 +27,27 @@ export default function ProductCart({
 }: {
   product: ProductCardData;
 }) {
-  const { addToCart } = useCart();
+  const { items, addToCart } = useCart();
   const [added, setAdded] = useState(false);
 
   const categoryName =
     typeof product.category === "object" ? product.category.name : "—";
 
   const outOfStock = product.stock <= 0;
+  const inCart = items.find((item) => item._id === product._id)?.quantity ?? 0;
+  const limitReached = !outOfStock && inCart >= product.stock;
 
   const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
     // The card itself is a link — don't navigate when adding to cart.
     e.preventDefault();
     e.stopPropagation();
+    if (outOfStock || limitReached) return;
     addToCart({
       _id: product._id,
       name: product.name,
       price: product.price,
       image: product.images[0],
+      stock: product.stock,
     });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
@@ -87,10 +91,16 @@ export default function ProductCart({
         <Button
           type="button"
           className="w-full"
-          disabled={outOfStock}
+          disabled={outOfStock || limitReached}
           onClick={handleAdd}
         >
-          {outOfStock ? "Sold Out" : added ? "Added ✓" : "Add to Cart"}
+          {outOfStock
+            ? "Sold Out"
+            : limitReached
+              ? "Max in Cart"
+              : added
+                ? "Added ✓"
+                : "Add to Cart"}
         </Button>
       </div>
     </Link>

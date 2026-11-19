@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import PaywayRedirectForm from "@/components/payway/PaywayRedirectForm";
-import { useCart } from "@/context/CartContext";
+import { getCartItemStock, useCart } from "@/context/CartContext";
 
 interface PaymentSetup {
   orderNumber: string;
@@ -30,13 +30,9 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [payment, setPayment] = useState<PaymentSetup | null>(null);
 
-  useEffect(() => {
-    setForm((prev) => ({
-      ...prev,
-      customerName: prev.customerName || session?.user?.name || "",
-      customerEmail: prev.customerEmail || session?.user?.email || "",
-    }));
-  }, [session]);
+  // Use the session as a fallback without copying it into state in an effect.
+  const customerName = form.customerName || session?.user?.name || "";
+  const customerEmail = form.customerEmail || session?.user?.email || "";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -45,6 +41,18 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    const overStock = items.find((item) => {
+      const stock = getCartItemStock(item);
+      return stock !== null && item.quantity > stock;
+    });
+    if (overStock) {
+      setError(
+        `"${overStock.name}" only has ${getCartItemStock(overStock)} left in stock. Please update your cart.`
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -52,7 +60,9 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          customerName,
+          customerPhone: form.customerPhone,
+          customerEmail,
           items: items.map((item) => ({
             product: item._id,
             quantity: item.quantity,
@@ -120,7 +130,7 @@ export default function CheckoutPage() {
               <Input
                 label="Full name"
                 name="customerName"
-                value={form.customerName}
+                value={customerName}
                 onChange={handleChange}
                 placeholder="Your name"
                 autoComplete="name"
@@ -139,7 +149,7 @@ export default function CheckoutPage() {
                 label="Email (optional)"
                 name="customerEmail"
                 type="email"
-                value={form.customerEmail}
+                value={customerEmail}
                 onChange={handleChange}
                 placeholder="you@example.com"
                 autoComplete="email"

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button";
-import { useCart } from "@/context/CartContext";
+import { getCartItemStock, useCart } from "@/context/CartContext";
 
 export default function CartDrawer() {
   const router = useRouter();
@@ -76,71 +76,86 @@ export default function CartDrawer() {
                   Your cart is empty.
                 </p>
               ) : (
-                items.map((item) => (
-                  <div key={item._id} className="flex gap-3">
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-foreground/5">
-                      {item.image ? (
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-xs text-gray-500">
-                          N/A
-                        </div>
-                      )}
-                    </div>
+                items.map((item) => {
+                  const stock = getCartItemStock(item);
+                  const atStockLimit = stock !== null && item.quantity >= stock;
 
-                    <div className="flex flex-1 flex-col justify-between">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-medium">{item.name}</p>
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(item._id)}
-                          className="text-sm text-gray-500 hover:text-red-500"
-                          aria-label={`Remove ${item.name}`}
-                        >
-                          ×
-                        </button>
+                  return (
+                    <div key={item._id} className="flex gap-3">
+                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-foreground/5">
+                        {item.image ? (
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            sizes="80px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-xs text-gray-500">
+                            N/A
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center rounded-lg border border-foreground/20">
+                      <div className="flex flex-1 flex-col justify-between">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-medium">{item.name}</p>
+                            {stock !== null && (
+                              <p className="text-xs text-foreground/50">
+                                {atStockLimit
+                                  ? "Max stock reached"
+                                  : `${stock} available`}
+                              </p>
+                            )}
+                          </div>
                           <button
                             type="button"
-                            onClick={() =>
-                              updateQuantity(item._id, item.quantity - 1)
-                            }
-                            className="px-2 py-1 text-gray-600 hover:text-foreground"
-                            aria-label="Decrease quantity"
+                            onClick={() => removeFromCart(item._id)}
+                            className="text-sm text-gray-500 hover:text-red-500"
+                            aria-label={`Remove ${item.name}`}
                           >
-                            −
+                            ×
                           </button>
-                          <span className="w-8 text-center text-sm">
-                            {item.quantity}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center rounded-lg border border-foreground/20">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateQuantity(item._id, item.quantity - 1)
+                              }
+                              className="px-2 py-1 text-gray-600 hover:text-foreground"
+                              aria-label="Decrease quantity"
+                            >
+                              −
+                            </button>
+                            <span className="w-8 text-center text-sm">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={atStockLimit}
+                              onClick={() =>
+                                updateQuantity(item._id, item.quantity + 1)
+                              }
+                              className="px-2 py-1 text-gray-600 hover:text-foreground disabled:opacity-40"
+                              aria-label="Increase quantity"
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          <span className="text-sm font-semibold">
+                            ${(item.price * item.quantity).toFixed(2)}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateQuantity(item._id, item.quantity + 1)
-                            }
-                            className="px-2 py-1 text-gray-600 hover:text-foreground"
-                            aria-label="Increase quantity"
-                          >
-                            +
-                          </button>
                         </div>
-
-                        <span className="text-sm font-semibold">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 

@@ -103,13 +103,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid order item" }, { status: 400 });
     }
 
+    // Merge duplicate product lines so stock is checked against the total
+    // quantity being ordered, not each line independently.
+    const quantities = new Map<string, number>();
+    for (const item of parsedItems) {
+      quantities.set(
+        item.product,
+        (quantities.get(item.product) ?? 0) + item.quantity
+      );
+    }
+    const orderItems = [...quantities].map(([product, quantity]) => ({
+      product,
+      quantity,
+    }));
+
+    if (orderItems.some((item) => item.quantity > 99)) {
+      return NextResponse.json({ error: "Invalid order item" }, { status: 400 });
+    }
+
     await connectDB();
 
     // Free inventory held by abandoned PayWay sessions before checking stock.
     await releaseStalePaywayReservations();
 
     const products = await Product.find({
-      _id: { $in: parsedItems.map((item) => item.product) },
+      _id: { $in: orderItems.map((item) => item.product) },
     }).lean();
 
     const productMap = new Map(
@@ -117,7 +135,7 @@ export async function POST(req: Request) {
     );
 
     const lineItems: Array<PurchaseItem & { product: string }> = [];
-    for (const item of parsedItems) {
+    for (const item of orderItems) {
       const product = productMap.get(item.product);
       if (!product) {
         return NextResponse.json(

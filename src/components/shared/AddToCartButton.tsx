@@ -19,21 +19,24 @@ export default function AddToCartButton({
   image,
   stock,
 }: AddToCartButtonProps) {
-  const { addToCart } = useCart();
+  const { items, addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
-  const available = stock > 0;
+  const inCart = items.find((item) => item._id === productId)?.quantity ?? 0;
+  const remaining = Math.max(0, Math.floor(stock) - inCart);
+  const available = remaining > 0;
+  const selected = Math.min(quantity, Math.max(1, remaining));
 
   const changeQuantity = (delta: number) => {
-    setQuantity((prev) =>
-      Math.min(Math.max(prev + delta, 1), Math.max(stock, 1))
+    setQuantity(
+      Math.min(Math.max(selected + delta, 1), Math.max(1, remaining))
     );
   };
 
   const handleAdd = () => {
     if (!available) return;
-    addToCart({ _id: productId, name, price, image }, quantity);
+    addToCart({ _id: productId, name, price, image, stock }, selected);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
   };
@@ -48,26 +51,28 @@ export default function AddToCartButton({
           <button
             type="button"
             onClick={() => changeQuantity(-1)}
-            disabled={quantity <= 1 || !available}
+            disabled={selected <= 1 || !available}
             aria-label="Decrease quantity"
             className="px-3 py-2 text-lg leading-none text-foreground/70 transition-colors hover:bg-foreground/5 disabled:opacity-40"
           >
             −
           </button>
           <span className="w-12 text-center text-sm font-semibold">
-            {quantity}
+            {selected}
           </span>
           <button
             type="button"
             onClick={() => changeQuantity(1)}
-            disabled={quantity >= stock || !available}
+            disabled={selected >= remaining || !available}
             aria-label="Increase quantity"
             className="px-3 py-2 text-lg leading-none text-foreground/70 transition-colors hover:bg-foreground/5 disabled:opacity-40"
           >
             +
           </button>
         </div>
-        {available && <span className="text-xs text-gray-500">max {stock}</span>}
+        {available && (
+          <span className="text-xs text-gray-500">max {remaining} more</span>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -79,7 +84,9 @@ export default function AddToCartButton({
           onClick={handleAdd}
         >
           {!available
-            ? "Sold Out"
+            ? stock <= 0
+              ? "Sold Out"
+              : "Max in Cart"
             : added
               ? "Added to Cart ✓"
               : "Add to Cart"}
